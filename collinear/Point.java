@@ -59,7 +59,11 @@ public class Point implements Comparable<Point> {
      */
     public double slopeTo(Point that) {
         /* YOUR CODE HERE */
-        return 0;
+        if (eq(that)) return Double.NEGATIVE_INFINITY;
+        if (y == that.y) return Double.POSITIVE_INFINITY;
+        if (x == that.x) return +0.0;
+
+        return ((double) that.y - y) / (that.x - x);
     }
 
     /**
@@ -74,7 +78,10 @@ public class Point implements Comparable<Point> {
      */
     public int compareTo(Point that) {
         /* YOUR CODE HERE */
-        return 0;
+        if (y == that.y && x == that.x) return 0;
+        if (y == that.y) return x - that.x;
+
+        return y - that.y;
     }
 
     /**
@@ -85,7 +92,21 @@ public class Point implements Comparable<Point> {
      */
     public Comparator<Point> slopeOrder() {
         /* YOUR CODE HERE */
-        return null;
+        return new PointComparator();
+    }
+
+    private class PointComparator implements Comparator<Point> {
+        @Override
+        public int compare(Point o1, Point o2) {
+            double slope1 = slopeTo(o1);
+            double slope2 = slopeTo(o2);
+
+            if (slope1 == slope2) return 0;
+            if (slope1 > slope2) return +1;
+            if (slope1 < slope2) return -1;
+
+            throw new IllegalArgumentException();
+        }
     }
 
 
@@ -105,5 +126,17 @@ public class Point implements Comparable<Point> {
      */
     public static void main(String[] args) {
         /* YOUR CODE HERE */
+    }
+
+    private boolean eq(Point that) {
+        return compareTo(that) == 0;
+    }
+
+    private boolean lt(Point that) {
+        return compareTo(that) < 0;
+    }
+
+    private boolean gt(Point that) {
+        return compareTo(that) > 0;
     }
 }

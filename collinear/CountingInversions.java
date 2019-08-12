@@ -39,7 +39,7 @@ public class CountingInversions {
                 a.length
         );
 
-        List<int[]> combinations = generate(n, k);
+        List<int[]> combinations = Combinations.generate(n, k);
 
         System.out.println("expected combinations");
 
@@ -75,24 +75,5 @@ public class CountingInversions {
             }
 
         return inversions;
-    }
-
-    private static void helper(List<int[]> combinations, int data[], int start, int end,
-                               int index) {
-        if (index == data.length) {
-            int[] combination = data.clone();
-            combinations.add(combination);
-        }
-        else if (start <= end) {
-            data[index] = start;
-            helper(combinations, data, start + 1, end, index + 1);
-            helper(combinations, data, start + 1, end, index);
-        }
-    }
-
-    public static List<int[]> generate(int n, int k) {
-        List<int[]> combinations = new ArrayList<>();
-        helper(combinations, new int[k], 0, n - 1, 0);
-        return combinations;
     }
 }
