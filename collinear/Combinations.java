@@ -9,7 +9,27 @@ import java.util.List;
 
 public class Combinations {
     public static void main(String[] args) {
+        // Integer[] a = new Integer[] { 1, 2, 3 };
+        // Integer[] a = new Integer[] { 1, 2, 3, 4 };
+        // Integer[] a = new Integer[] { 1, 2, 3, 4, 5 };
+        Integer[] a = new Integer[] { 1, 2, 3, 4, 5, 6 };
+        int n = a.length;
+        int k = 4;
 
+        List<int[]> combinations = Combinations.generate(n, k);
+
+        for (int[] combination : combinations) {
+            for (int i : combination)
+                System.out.print(i + 1);
+            System.out.println();
+        }
+
+        System.out.printf(
+                "generated %d combinations of %d items from %d ",
+                combinations.size(),
+                k,
+                n
+        );
     }
 
 
