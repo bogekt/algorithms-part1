@@ -64,46 +64,26 @@ public class BruteCollinearPoints {
         }
         int headCursorIndex = 0;
         int tailCursorIndex = k - 1;
-        int currentCursorIndex = tailCursorIndex;
+        int moveCursorIndex = tailCursorIndex;
         int combinationsCount = 0;
 
         processor.process(makeCombination(cursors), combinationsCount++);
 
         if (k == n) return combinationsCount;
 
-        int moveCursorIndex = missedMoveCursorIndex;
-
         while (cursors[headCursorIndex] < headCursorBound) {
-            if (moveCursorIndex != missedMoveCursorIndex) {
-                if (cursors[moveCursorIndex] < cursorsBounds[moveCursorIndex]) {
-                    cursors[moveCursorIndex]++;
-                }
-                else {
-                    moveCursorIndex = currentCursorIndex;
-
-                    while (
-                            moveCursorIndex < tailCursorIndex &&
-                                    isNextNeighbor(cursors, moveCursorIndex)
-                    )
-                        moveCursorIndex++;
-
-                    if (currentCursorIndex == moveCursorIndex) {
-                        ++cursors[currentCursorIndex];
-
-                        if (currentCursorIndex < tailCursorIndex)
-                            for (int i = currentCursorIndex + 1, j = 1; i < k; i++, j++)
-                                cursors[i] = cursors[currentCursorIndex] + j;
-
-                        moveCursorIndex = missedMoveCursorIndex;
-                    }
-                }
+            if (cursors[moveCursorIndex] < cursorsBounds[moveCursorIndex]) {
+                ++cursors[moveCursorIndex];
             }
             else {
-                ++cursors[--currentCursorIndex];
+                while (cursors[moveCursorIndex] >= cursorsBounds[moveCursorIndex])
+                    --moveCursorIndex;
 
-                if (currentCursorIndex < tailCursorIndex)
-                    for (int i = currentCursorIndex + 1, j = 1; i < k; i++, j++)
-                        cursors[i] = cursors[currentCursorIndex] + j;
+                ++cursors[moveCursorIndex];
+
+                if (moveCursorIndex < tailCursorIndex)
+                    for (int i = moveCursorIndex + 1, j = 1; i < k; i++, j++)
+                        cursors[i] = cursors[moveCursorIndex] + j;
 
                 moveCursorIndex = tailCursorIndex;
             }
@@ -142,7 +122,7 @@ public class BruteCollinearPoints {
         // Integer[] a = new Integer[] { 1, 2, 3, 4, 5 };
         Integer[] a = new Integer[] { 1, 2, 3, 4, 5, 6 };
         int n = a.length;
-        int k = 3;
+        int k = 4;
 
         List<int[]> combinations = Combinations.generate(n, k);
         int count = processCombinations(n, k, (int[] combination, int number) -> {
