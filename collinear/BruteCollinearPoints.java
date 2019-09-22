@@ -4,7 +4,6 @@
  *  Description:
  **************************************************************************** */
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -72,19 +71,26 @@ public class BruteCollinearPoints {
         if (k == n) return combinationsCount;
 
         while (cursors[headCursorIndex] < headCursorBound) {
-            if (cursors[moveCursorIndex] < cursorsBounds[moveCursorIndex]) {
+            // _xxx_..._x
+            // ---------^ move item till last index
+            if (cursors[moveCursorIndex] < cursorsBounds[moveCursorIndex])
                 ++cursors[moveCursorIndex];
-            }
             else {
+                // _xxx_..._x
+                // ---^----- find last item, which not reach bounds
                 while (cursors[moveCursorIndex] >= cursorsBounds[moveCursorIndex])
                     --moveCursorIndex;
 
+                // _xx_xx_...
+                // ----^----- increment found item and rearange next after it
                 ++cursors[moveCursorIndex];
 
                 if (moveCursorIndex < tailCursorIndex)
                     for (int i = moveCursorIndex + 1, j = 1; i < k; i++, j++)
                         cursors[i] = cursors[moveCursorIndex] + j;
 
+                // _xx_xx_...
+                // -----^--- set new move item
                 moveCursorIndex = tailCursorIndex;
             }
 
@@ -104,52 +110,31 @@ public class BruteCollinearPoints {
         return combination;
     }
 
-    private static boolean isNextNeighbor(int[] cursors, int index) {
-        return nextCursorDiff(cursors, index) == 1;
-    }
-
-    private static int nextCursorDiff(int[] cursors, int index) {
-        return diff(cursors, index, index + 1);
-    }
-
-    private static int diff(int[] cursors, int index1, int index2) {
-        return Math.abs(cursors[index1] - cursors[index2]);
-    }
-
     public static void main(String[] args) {
         // Integer[] a = new Integer[] { 1, 2, 3 };
         // Integer[] a = new Integer[] { 1, 2, 3, 4 };
         // Integer[] a = new Integer[] { 1, 2, 3, 4, 5 };
-        Integer[] a = new Integer[] { 1, 2, 3, 4, 5, 6 };
+        // Integer[] a = new Integer[] { 1, 2, 3, 4, 5, 6 };
+        Integer[] a = new Integer[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
         int n = a.length;
-        int k = 4;
+        int k = 3;
 
         List<int[]> combinations = Combinations.generate(n, k);
-        int count = processCombinations(n, k, (int[] combination, int number) -> {
-            System.out.println(
-                    Arrays.toString(combination) +
-                            " " +
-                            (
-                                    number < combinations.size()
-                                    ? Arrays.toString(combinations.get(number))
-                                    : null
-                            )
-            );
-        });
-
-        for (int i = count; i < combinations.size(); i++)
-            System.out.println(
-                    null +
-                            " " +
-                            Arrays.toString(combinations.get(i))
-            );
-
-        System.out.printf(
-                "Generated %d combinations of %d items from %d. Expected count is %d",
-                count,
-                k,
+        List<int[]> testCombinations = new LinkedList<>();
+        int count = processCombinations(
                 n,
-                combinations.size()
+                k,
+                (int[] combination, int number) -> testCombinations.add(combination)
         );
+
+        assert count == testCombinations.size() && count == combinations.size();
+
+        for (int i = 0; i < n; i++) {
+            int[] combination = testCombinations.get(i);
+            int[] testCombination = testCombinations.get(i);
+
+            for (int j = 0; j < k; j++)
+                assert testCombination[j] == combination[j];
+        }
     }
 }
