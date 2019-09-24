@@ -2,6 +2,20 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c1e4f978-b3bd-4ae1-84e9-9e1170bce808" name="Default" comment="">
+      <change afterPath="$PROJECT_DIR$/InteractivePercolationVisualizer.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Percolation$1.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Percolation$BiConsumer.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Percolation$BiFunction.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Percolation$BiPredicate.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Percolation$Function.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Percolation$Predicate.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Percolation$SiteContext.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Percolation$SiteSides.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Percolation$SiteStates.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Percolation.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PercolationStats.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PercolationVisualizer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />

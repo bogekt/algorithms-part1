@@ -4,49 +4,78 @@
  *  Description:
  **************************************************************************** */
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
 
 public class BruteCollinearPoints {
-    private static final Comparator<Point> naturalOrder = new PointNaturalOrderComparator();
-    private static final LineSegment[] EmptyLineSegments = new LineSegment[0];
-    private static final int LineSegmentCount = 4;
+    private static final Comparator<Point> NATURAL_ORDER = new PointNaturalOrderComparator();
+    private static final LineSegment[] EMPTY_LINE_SEGMENTS = new LineSegment[0];
+    private static final int LINE_SEGMENT_COUNT = 4;
+    private static final PointNaturalOrderComparator POINT_NATURAL_ORDER_COMPARATOR
+            = new PointNaturalOrderComparator();
 
-    private int numberOfSegments = 0;
-    private LineSegment[] lineSegments = EmptyLineSegments;
-    private static final int[][] COMBINATIONS_4_2 = new int[][] {
-            { 1, 2 }, { 1, 3 }, { 1, 4 }, { 2, 3 }, { 2, 4 }, { 3, 4 },
-            };
-
-    private static class PointNaturalOrderComparator implements Comparator<Point> {
+    private static final class PointNaturalOrderComparator implements Comparator<Point> {
         @Override
         public int compare(Point o1, Point o2) {
             return o1.compareTo(o2);
         }
     }
 
+    private LineSegment[] lineSegments = EMPTY_LINE_SEGMENTS;
+    private ColinearPointsProcessor colinearPointsProcessor;
+
     // finds all line segments containing 4 points
     public BruteCollinearPoints(Point[] points) {
         if (points == null) throw new IllegalArgumentException();
-        if (points.length < LineSegmentCount) return;
-        // todo;
-        if (points.length == LineSegmentCount) return;
+        if (points.length < LINE_SEGMENT_COUNT) return;
 
-        LinkedList<LineSegment> lineSegmentsList = new LinkedList<LineSegment>();
-
-        lineSegments = lineSegmentsList.toArray(EmptyLineSegments);
+        colinearPointsProcessor = new ColinearPointsProcessor(points.clone());
+        processCombinations(
+                points.length,
+                LINE_SEGMENT_COUNT,
+                colinearPointsProcessor::process
+        );
+        lineSegments = colinearPointsProcessor.lineSegmentsList.toArray(EMPTY_LINE_SEGMENTS);
     }
 
     // the number of line segments
     public int numberOfSegments() {
-        return numberOfSegments;
+        return lineSegments.length;
     }
 
     // the line segments
     public LineSegment[] segments() {
         return lineSegments;
+    }
+
+
+    private class ColinearPointsProcessor {
+        private final LinkedList<LineSegment> lineSegmentsList = new LinkedList<LineSegment>();
+        private final Point[] points;
+
+        ColinearPointsProcessor(Point[] points) {
+            this.points = points;
+        }
+
+        private void process(int[] combination, int number) {
+            Point p = points[combination[0]];
+            Point q = points[combination[1]];
+            Point r = points[combination[2]];
+            Point s = points[combination[3]];
+
+            double slope = p.slopeTo(q);
+
+            if (slope != p.slopeTo(r)) return;
+            if (slope != p.slopeTo(s)) return;
+
+            Point[] lineSegmentPoints = new Point[] { p, q, r, s };
+            Arrays.sort(lineSegmentPoints, POINT_NATURAL_ORDER_COMPARATOR);
+
+            lineSegmentsList.add(new LineSegment(lineSegmentPoints[0], lineSegmentPoints[3]));
+        }
     }
 
     private interface CombinationProcessor {
@@ -114,6 +143,9 @@ public class BruteCollinearPoints {
     }
 
     public static void main(String[] args) {
+        final int[][] COMBINATIONS_4_2 = new int[][] {
+                { 1, 2 }, { 1, 3 }, { 1, 4 }, { 2, 3 }, { 2, 4 }, { 3, 4 },
+                };
         final int[][] COMBINATIONS_7_3 = new int[][] {
                 { 1, 2, 3 }, { 1, 2, 4 }, { 1, 2, 5 }, { 1, 2, 6 }, { 1, 2, 7 }, { 1, 3, 4 },
                 { 1, 3, 5 }, { 1, 3, 6 }, { 1, 3, 7 }, { 1, 4, 5 }, { 1, 4, 6 }, { 1, 4, 7 },
