@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
+
 public class BruteCollinearPoints {
     private static final Comparator<Point> naturalOrder = new PointNaturalOrderComparator();
     private static final LineSegment[] EmptyLineSegments = new LineSegment[0];
@@ -15,6 +16,9 @@ public class BruteCollinearPoints {
 
     private int numberOfSegments = 0;
     private LineSegment[] lineSegments = EmptyLineSegments;
+    private static final int[][] COMBINATIONS_4_2 = new int[][] {
+            { 1, 2 }, { 1, 3 }, { 1, 4 }, { 2, 3 }, { 2, 4 }, { 3, 4 },
+            };
 
     private static class PointNaturalOrderComparator implements Comparator<Point> {
         @Override
@@ -44,7 +48,6 @@ public class BruteCollinearPoints {
     public LineSegment[] segments() {
         return lineSegments;
     }
-
 
     private interface CombinationProcessor {
         void process(int[] combination, int number);
@@ -111,15 +114,20 @@ public class BruteCollinearPoints {
     }
 
     public static void main(String[] args) {
-        // Integer[] a = new Integer[] { 1, 2, 3 };
-        // Integer[] a = new Integer[] { 1, 2, 3, 4 };
-        // Integer[] a = new Integer[] { 1, 2, 3, 4, 5 };
-        // Integer[] a = new Integer[] { 1, 2, 3, 4, 5, 6 };
-        Integer[] a = new Integer[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
-        int n = a.length;
-        int k = 3;
+        final int[][] COMBINATIONS_7_3 = new int[][] {
+                { 1, 2, 3 }, { 1, 2, 4 }, { 1, 2, 5 }, { 1, 2, 6 }, { 1, 2, 7 }, { 1, 3, 4 },
+                { 1, 3, 5 }, { 1, 3, 6 }, { 1, 3, 7 }, { 1, 4, 5 }, { 1, 4, 6 }, { 1, 4, 7 },
+                { 1, 5, 6 }, { 1, 5, 7 }, { 1, 6, 7 }, { 2, 3, 4 }, { 2, 3, 5 }, { 2, 3, 6 },
+                { 2, 3, 7 }, { 2, 4, 5 }, { 2, 4, 6 }, { 2, 4, 7 }, { 2, 5, 6 }, { 2, 5, 7 },
+                { 2, 6, 7 }, { 3, 4, 5 }, { 3, 4, 6 }, { 3, 4, 7 }, { 3, 5, 6 }, { 3, 5, 7 },
+                { 3, 6, 7 }, { 4, 5, 6 }, { 4, 5, 7 }, { 4, 6, 7 }, { 5, 6, 7 },
+                };
 
-        List<int[]> combinations = Combinations.generate(n, k);
+        checkCombinations(4, 2, COMBINATIONS_4_2);
+        checkCombinations(7, 3, COMBINATIONS_7_3);
+    }
+
+    private static void checkCombinations(int n, int k, int[][] combinations) {
         List<int[]> testCombinations = new LinkedList<>();
         int count = processCombinations(
                 n,
@@ -127,7 +135,7 @@ public class BruteCollinearPoints {
                 (int[] combination, int number) -> testCombinations.add(combination)
         );
 
-        assert count == testCombinations.size() && count == combinations.size();
+        assert count == testCombinations.size() && count == combinations.length;
 
         for (int i = 0; i < n; i++) {
             int[] combination = testCombinations.get(i);
