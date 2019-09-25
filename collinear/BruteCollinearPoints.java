@@ -4,10 +4,10 @@
  *  Description:
  **************************************************************************** */
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 
 public class BruteCollinearPoints {
@@ -25,14 +25,21 @@ public class BruteCollinearPoints {
     }
 
     private LineSegment[] lineSegments = EMPTY_LINE_SEGMENTS;
-    private ColinearPointsProcessor colinearPointsProcessor;
 
     // finds all line segments containing 4 points
     public BruteCollinearPoints(Point[] points) {
+        // just not null
         if (points == null) throw new IllegalArgumentException();
+        // has any null point
+        for (Point point : points)
+            if (Objects.isNull(point)) throw new IllegalArgumentException();
+        // and check for duplicates
+        // todo
+
         if (points.length < LINE_SEGMENT_COUNT) return;
 
-        colinearPointsProcessor = new ColinearPointsProcessor(points.clone());
+        ColinearPointsProcessor colinearPointsProcessor = new ColinearPointsProcessor(
+                points.clone());
         processCombinations(
                 points.length,
                 LINE_SEGMENT_COUNT,
@@ -71,10 +78,15 @@ public class BruteCollinearPoints {
             if (slope != p.slopeTo(r)) return;
             if (slope != p.slopeTo(s)) return;
 
-            Point[] lineSegmentPoints = new Point[] { p, q, r, s };
-            Arrays.sort(lineSegmentPoints, POINT_NATURAL_ORDER_COMPARATOR);
+            Point min = p;
+            Point max = p;
 
-            lineSegmentsList.add(new LineSegment(lineSegmentPoints[0], lineSegmentPoints[3]));
+            for (Point point : new Point[] { q, r, s }) {
+                if (min.compareTo(point) > 0) min = point;
+                if (max.compareTo(point) < 0) max = point;
+            }
+
+            lineSegmentsList.add(new LineSegment(min, max));
         }
     }
 
