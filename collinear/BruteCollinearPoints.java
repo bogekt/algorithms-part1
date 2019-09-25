@@ -31,15 +31,20 @@ public class BruteCollinearPoints {
         // just not null
         if (points == null) throw new IllegalArgumentException();
         // has any null point
-        for (Point point : points)
-            if (Objects.isNull(point)) throw new IllegalArgumentException();
-        // and check for duplicates
-        // todo
+        int i = 0;
+        for (Point point : points) {
+            if (Objects.isNull(point)) throw new IllegalArgumentException("null item");
+            // and check for duplicates
+            for (int j = i++ + 1; j < points.length; j++) {
+                Point point2 = points[j];
+                if (Objects.isNull(point2)) throw new IllegalArgumentException("null item");
+                if (point2.compareTo(point) == 0) throw new IllegalArgumentException("duplicate");
+            }
+        }
 
         if (points.length < LINE_SEGMENT_COUNT) return;
 
-        ColinearPointsProcessor colinearPointsProcessor = new ColinearPointsProcessor(
-                points.clone());
+        ColinearPointsProcessor colinearPointsProcessor = new ColinearPointsProcessor(points);
         processCombinations(
                 points.length,
                 LINE_SEGMENT_COUNT,
@@ -169,6 +174,36 @@ public class BruteCollinearPoints {
 
         checkCombinations(4, 2, COMBINATIONS_4_2);
         checkCombinations(7, 3, COMBINATIONS_7_3);
+
+        Point p11 = new Point(1, 1);
+        Point p22 = new Point(2, 2);
+        Point p33 = new Point(3, 3);
+        Point p44 = new Point(4, 4);
+        Point pFail = new Point(42, 0);
+
+        try {
+            new BruteCollinearPoints(new Point[] { p11, null });
+            assert false;
+        }
+        catch (IllegalArgumentException ex) {
+            assert ex.getMessage().contains("item");
+        }
+
+        try {
+            new BruteCollinearPoints(new Point[] { p11, p22, p11 });
+            assert false;
+        }
+        catch (IllegalArgumentException ex) {
+            assert ex.getMessage().contains("duplicate");
+        }
+
+        BruteCollinearPoints success = new BruteCollinearPoints(new Point[] { p11, p22, p33, p44 });
+        BruteCollinearPoints fail = new BruteCollinearPoints(new Point[] { p11, p22, p33, pFail });
+
+        assert success.numberOfSegments() == 1 && success.segments().length == 1;
+        assert success.segments()[0].toString().contains("1, 1")
+                && success.segments()[0].toString().contains("4, 4");
+        assert fail.numberOfSegments() == 0 && fail.segments().length == 0;
     }
 
     private static void checkCombinations(int n, int k, int[][] combinations) {
