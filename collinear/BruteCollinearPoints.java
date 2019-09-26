@@ -11,11 +11,8 @@ import java.util.Objects;
 
 
 public class BruteCollinearPoints {
-    private static final Comparator<Point> NATURAL_ORDER = new PointNaturalOrderComparator();
     private static final LineSegment[] EMPTY_LINE_SEGMENTS = new LineSegment[0];
     private static final int LINE_SEGMENT_COUNT = 4;
-    private static final PointNaturalOrderComparator POINT_NATURAL_ORDER_COMPARATOR
-            = new PointNaturalOrderComparator();
 
     private static final class PointNaturalOrderComparator implements Comparator<Point> {
         @Override
@@ -73,19 +70,20 @@ public class BruteCollinearPoints {
         }
 
         private void process(int[] combination, int number) {
+            // prepare
             Point p = points[combination[0]];
             Point q = points[combination[1]];
             Point r = points[combination[2]];
             Point s = points[combination[3]];
 
+            // check is colinear
             double slope = p.slopeTo(q);
-
             if (slope != p.slopeTo(r)) return;
             if (slope != p.slopeTo(s)) return;
 
+            // lookup for first and last point
             Point min = p;
             Point max = p;
-
             for (Point point : new Point[] { q, r, s }) {
                 if (min.compareTo(point) > 0) min = point;
                 if (max.compareTo(point) < 0) max = point;
