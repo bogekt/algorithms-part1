@@ -47,34 +47,46 @@ public class FastCollinearPoints {
         while (i <= points.length - LINE_SEGMENT_COUNT) {
             // prepare
             Point p = points[i];
-            Arrays.sort(points, p.slopeOrder());
+            // Arrays.sort(points, p.slopeOrder());
             // todo
-            // Arrays.sort(points, i, points.length, p.slopeOrder());
+            Arrays.sort(points, i, points.length, p.slopeOrder());
 
             // check is colinear
-            double slope = p.slopeTo(points[i + 1]);
-            if (p.slopeTo(points[i + 2]) != slope || p.slopeTo(points[i + 3]) != slope) {
+
+            int j = i + 1;
+            double slope;
+            boolean found = false;
+
+            do {
+                slope = p.slopeTo(points[j]);
+
+                if (slope != p.slopeTo(points[j + 1])) continue;
+                if (slope != p.slopeTo(points[j + 2])) continue;
+
+                found = true;
+            } while (!found && j++ <= points.length - LINE_SEGMENT_COUNT);
+
+            if (!found) {
                 i++;
                 continue;
             }
 
             // lookup for all colinear points (> 4)
-            int k = i + 3;
-            int j = i + 4;
-            while (j < points.length && p.slopeTo(points[j]) == slope)
-                k = j++;
+            int k = j + 2;
+            int temp = k + 1;
+            while (temp < points.length && p.slopeTo(points[temp]) == slope)
+                k = temp++;
 
             // lookup for first and last point
             Point min = p;
             Point max = p;
-            for (j = i; j <= k; j++) {
-                Point point = points[j];
+            while (j <= k) {
+                Point point = points[j++];
                 if (min.compareTo(point) > 0) min = point;
                 if (max.compareTo(point) < 0) max = point;
             }
 
             lineSegmentsList.add(new LineSegment(min, max));
-
             i++;
         }
 
@@ -98,11 +110,10 @@ public class FastCollinearPoints {
                 new Point(3, 3),
                 new Point(1, 1),
 
-                // todo
-                new Point(-2, 2),
-                new Point(-4, 4),
-                new Point(-3, 3),
-                new Point(-1, 1),
+                new Point(2, 3),
+                new Point(4, 1),
+                new Point(3, 2),
+                new Point(1, 4),
                 });
 
         assert success2.numberOfSegments() == 2;
