@@ -10,6 +10,7 @@
 
 import edu.princeton.cs.algs4.StdDraw;
 
+import java.util.Arrays;
 import java.util.Comparator;
 
 public class Point implements Comparable<Point> {
@@ -128,5 +129,53 @@ public class Point implements Comparable<Point> {
      */
     public static void main(String[] args) {
         /* YOUR CODE HERE */
+
+        Point p22 = new Point(2, 2);
+        Point p11 = new Point(1, 1);
+        Point p33 = new Point(3, 3);
+        Point p44 = new Point(4, 4);
+        assert p11.slopeTo(p22) == p22.slopeTo(p33) && p22.slopeTo(p33) == p33.slopeTo(p11);
+
+        Comparator<Point> slopeOrder = p11.slopeOrder();
+        assert slopeOrder.compare(p22, p33) == 0
+                && slopeOrder.compare(p33, p44) == 0
+                && slopeOrder.compare(p44, p22) == 0;
+
+        Point pMax1 = new Point(Integer.MAX_VALUE, Integer.MAX_VALUE);
+        Point pMax2 = new Point(Integer.MAX_VALUE, Integer.MAX_VALUE);
+        assert pMax1.compareTo(pMax2) == 0 && pMax2.compareTo(pMax1) == 0 && pMax1 != pMax2;
+
+        Point[] pArray = new Point[] {
+                p22,
+                p44,
+                pMax1,
+                p33,
+                p11,
+
+                new Point(2, 3),
+                new Point(4, 1),
+                pMax1,
+                new Point(6, 6),
+                new Point(5, 5),
+                pMax1,
+                new Point(3, 2),
+                pMax2,
+                new Point(1, 4),
+                };
+
+        Arrays.sort(pArray, pArray[0].slopeOrder());
+        Arrays.sort(pArray);
+
+        int i = pArray.length - 4;
+        int pMax1Count = 0;
+        while (i < pArray.length) {
+            Point p = pArray[i++];
+
+            if (p == pMax1) pMax1Count++;
+            assert (p == pMax1 || p == pMax2);
+            assert p.compareTo(pMax1) == 0 && p.compareTo(pMax2) == 0;
+        }
+
+        assert pMax1Count == 3;
     }
 }
