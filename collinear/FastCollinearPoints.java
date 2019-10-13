@@ -45,23 +45,14 @@ public class FastCollinearPoints {
         // todo
         points = points.clone();
         int collinearPointsCount = 0;
-        int last4Index = points.length - LINE_SEGMENT_COUNT;
+        final int last4Index = points.length - LINE_SEGMENT_COUNT;
+        final int lastIndex = points.length - 1;
 
         while (Math.max(collinearPointsCount, i) <= last4Index) {
-            // todo
-            // skip collinear (null) points
-            // i = findNotNull(points, i, last4Index);
-            //
-            // if (i == -1) break;
             // prepare
             Point p = points[i];
             Arrays.sort(points, i, points.length, p.slopeOrder());
 
-            // todo
-            // skip collinear (null) points
-            // int j = findNotNull(points, i + 1, last4Index);
-            //
-            // if (j == -1) break;
             // check is colinear
             int j = i + 1;
             double slope;
@@ -69,8 +60,7 @@ public class FastCollinearPoints {
 
             do {
                 slope = p.slopeTo(points[j]);
-
-                if (slope != p.slopeTo(points[j + 1])) continue;
+                // if (slope != p.slopeTo(points[j + 1])) continue;
                 if (slope != p.slopeTo(points[j + 2])) continue;
 
                 isCollinear4 = true;
@@ -93,13 +83,13 @@ public class FastCollinearPoints {
             // lookup for first and last point
             Point min = p;
             Point max = p;
+            boolean needSwap = k < lastIndex;
 
             while (j <= k) {
                 Point point = points[j];
                 if (min.compareTo(point) > 0) min = point;
                 if (max.compareTo(point) < 0) max = point;
-                // todo
-                // points[j] = null;
+                if (needSwap) swap(points, ++i, j);
                 j++;
             }
 
@@ -121,37 +111,25 @@ public class FastCollinearPoints {
     }
 
 
-    private static <T> int findNotNull(T[] array, int start, int end) {
-        if (start < 0) return -1;
-
-        int i = start;
-        int notNullIndex = -1;
-
-        while (i <= end && i < array.length) {
-            if (array[i] != null) {
-                notNullIndex = i;
-                break;
-            }
-
-            i++;
-        }
-
-        return notNullIndex;
+    private static <T> void swap(T[] array, int i, int j) {
+        T x = array[i];
+        array[i] = array[j];
+        array[j] = x;
     }
 
     public static void main(String[] args) {
         FastCollinearPoints success2 = new FastCollinearPoints(new Point[] {
-                new Point(2, 2),
-                new Point(4, 4),
-                new Point(3, 3),
-                new Point(1, 1),
-
                 new Point(2, 3),
                 new Point(4, 1),
                 new Point(6, 6),
                 new Point(5, 5),
                 new Point(3, 2),
                 new Point(1, 4),
+
+                new Point(2, 2),
+                new Point(4, 4),
+                new Point(3, 3),
+                new Point(1, 1),
                 });
 
         assert success2.numberOfSegments() == 2;

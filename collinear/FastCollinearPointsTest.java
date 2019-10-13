@@ -5,34 +5,41 @@
  **************************************************************************** */
 
 import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
-
-import java.util.LinkedList;
 
 public class FastCollinearPointsTest {
     public static void main(String[] args) {
-        In in = new In(args[0]);      // input file
+        // read the n points from a file
+        In in = new In(args[0]);
         int n = in.readInt();
-        LinkedList<Point> pointsLinkedList = new LinkedList<Point>();
-
-        while (!in.isEmpty()) {
+        Point[] points = new Point[n];
+        for (int i = 0; i < n; i++) {
             int x = in.readInt();
             int y = in.readInt();
-
-            pointsLinkedList.add(new Point(x, y));
+            points[i] = new Point(x, y);
         }
 
-        assert n == pointsLinkedList.size();
+        // draw the points
+        StdDraw.enableDoubleBuffering();
+        StdDraw.setXscale(0, 32768);
+        StdDraw.setYscale(0, 32768);
+        for (Point p : points) {
+            p.draw();
+        }
+        StdDraw.show();
 
-        FastCollinearPoints fastCollinearPoints = new FastCollinearPoints(
-                pointsLinkedList.toArray(new Point[0]));
-
-        for (LineSegment lineSegment : fastCollinearPoints.segments()) {
-            StdOut.println(lineSegment.toString());
+        // print and draw the line segments
+        FastCollinearPoints fastCollinearPoints = new FastCollinearPoints(points);
+        for (LineSegment segment : fastCollinearPoints.segments()) {
+            StdOut.println(segment);
+            segment.draw();
         }
 
         StdOut.println();
         StdOut.println("Total number of segments:" + fastCollinearPoints.numberOfSegments());
+
+        StdDraw.show();
     }
 }
 
