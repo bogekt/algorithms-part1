@@ -61,8 +61,7 @@ public class Point implements Comparable<Point> {
         /* YOUR CODE HERE */
         if (that == null) throw new NullPointerException();
         if (compareTo(that) == 0) return Double.NEGATIVE_INFINITY;
-        if (x == that.x) return +0.0;
-        if (y == that.y) return Double.POSITIVE_INFINITY;
+        if (that.x == x) return Double.POSITIVE_INFINITY;
 
         return ((double) that.y - y) / (that.x - x);
     }
@@ -99,13 +98,13 @@ public class Point implements Comparable<Point> {
 
     private class PointSlopeOrderComparator implements Comparator<Point> {
         @Override
-        public int compare(Point o1, Point o2) {
-            double slope1 = slopeTo(o1);
-            double slope2 = slopeTo(o2);
+        public int compare(Point q, Point r) {
+            double qSlope = slopeTo(q);
+            double rSlope = slopeTo(r);
 
-            if (slope1 == slope2) return 0;
-            if (slope1 > slope2) return +1;
-            if (slope1 < slope2) return -1;
+            if (qSlope == rSlope) return 0;
+            if (qSlope > rSlope) return +1;
+            if (qSlope < rSlope) return -1;
 
             throw new IllegalArgumentException();
         }
@@ -139,5 +138,34 @@ public class Point implements Comparable<Point> {
         assert slopeOrder.compare(p22, p33) == 0
                 && slopeOrder.compare(p33, p44) == 0
                 && slopeOrder.compare(p44, p22) == 0;
+
+
+        Point p, q, r;
+
+        p = new Point(451, 321);
+        q = new Point(451, 394);
+        assert p.slopeTo(q) == Double.POSITIVE_INFINITY;
+        assert q.slopeTo(p) == Double.POSITIVE_INFINITY;
+
+        p = new Point(12747, 7468);
+        q = new Point(28564, 7468);
+        assert p.slopeTo(q) == 0;
+        assert q.slopeTo(p) == 0;
+
+
+        p = new Point(2, 2);
+        q = new Point(1, 1);
+        r = new Point(2, 1);
+        assert p.slopeOrder().compare(q, r) < 0;
+
+        p = new Point(284, 394);
+        q = new Point(284, 475);
+        r = new Point(272, 113);
+        assert p.slopeOrder().compare(q, r) > 0;
+
+        p = new Point(23020, 26203);
+        q = new Point(21845, 22066);
+        r = new Point(23020, 29819);
+        assert p.slopeOrder().compare(q, r) < 0;
     }
 }
