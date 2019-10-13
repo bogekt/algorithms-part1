@@ -28,11 +28,11 @@ public class FastCollinearPoints {
         // just not null
         if (points == null) throw new IllegalArgumentException();
         // has any null point
-        int i = 0;
+        int slopeIndex = 0;
         for (Point point : points) {
             if (Objects.isNull(point)) throw new IllegalArgumentException("null item");
             // and check for duplicates
-            for (int j = i++ + 1; j < points.length; j++) {
+            for (int j = slopeIndex++ + 1; j < points.length; j++) {
                 Point point2 = points[j];
                 if (Objects.isNull(point2)) throw new IllegalArgumentException("null item");
                 if (point2.compareTo(point) == 0) throw new IllegalArgumentException("duplicate");
@@ -41,60 +41,60 @@ public class FastCollinearPoints {
 
         if (points.length < LINE_SEGMENT_COUNT) return;
 
-        i = 0;
+        slopeIndex = 0;
         // todo
         points = points.clone();
         int collinearPointsCount = 0;
         final int last4Index = points.length - LINE_SEGMENT_COUNT;
         final int lastIndex = points.length - 1;
 
-        while (Math.max(collinearPointsCount, i) <= last4Index) {
+        while (Math.max(collinearPointsCount, slopeIndex) <= last4Index) {
             // prepare
-            Point p = points[i];
-            Arrays.sort(points, i, points.length, p.slopeOrder());
+            Point p = points[slopeIndex];
+            Arrays.sort(points, slopeIndex, points.length, p.slopeOrder());
 
             // check is colinear
-            int j = i + 1;
+            int startCollinearIndex = slopeIndex + 1;
             double slope;
             boolean isCollinear4 = false;
 
             do {
-                slope = p.slopeTo(points[j]);
+                slope = p.slopeTo(points[startCollinearIndex]);
                 // if (slope != p.slopeTo(points[j + 1])) continue;
-                if (slope != p.slopeTo(points[j + 2])) continue;
+                if (slope != p.slopeTo(points[startCollinearIndex + 2])) continue;
 
                 isCollinear4 = true;
-            } while (!isCollinear4 && j++ <= last4Index);
+            } while (!isCollinear4 && startCollinearIndex++ <= last4Index);
 
             if (!isCollinear4) {
-                i++;
+                slopeIndex++;
                 continue;
             }
 
             // lookup for all colinear points (> 4)
-            int k = j + 2;
-            int temp = k + 1;
+            int endCollinearIndex = startCollinearIndex + 2;
+            int i = endCollinearIndex + 1;
 
-            while (temp < points.length && p.slopeTo(points[temp]) == slope)
-                k = temp++;
+            while (i < points.length && p.slopeTo(points[i]) == slope)
+                endCollinearIndex = i++;
 
-            collinearPointsCount += k - j + 2;
+            collinearPointsCount += endCollinearIndex - startCollinearIndex + 2;
 
             // lookup for first and last point
             Point min = p;
             Point max = p;
-            boolean needSwap = k < lastIndex;
+            boolean needSwap = endCollinearIndex < lastIndex;
 
-            while (j <= k) {
-                Point point = points[j];
+            while (startCollinearIndex <= endCollinearIndex) {
+                Point point = points[startCollinearIndex];
                 if (min.compareTo(point) > 0) min = point;
                 if (max.compareTo(point) < 0) max = point;
-                if (needSwap) swap(points, ++i, j);
-                j++;
+                if (needSwap) swap(points, ++slopeIndex, startCollinearIndex);
+                startCollinearIndex++;
             }
 
             lineSegmentsList.addFirst(new LineSegment(min, max));
-            i++;
+            slopeIndex++;
         }
 
         lineSegments = lineSegmentsList.toArray(EMPTY_LINE_SEGMENTS);
