@@ -48,7 +48,7 @@ public class FastCollinearPoints {
         final int last4Index = points.length - LINE_SEGMENT_COUNT;
         final int last3Index = points.length - LINE_SEGMENT_COUNT + 1;
 
-        while (Math.max(collinearPointsCount, slopeIndex) <= last4Index) {
+        while (slopeIndex <= last4Index) {
             // prepare
             Point p = points[slopeIndex];
             Arrays.sort(points, slopeIndex, points.length, p.slopeOrder());
