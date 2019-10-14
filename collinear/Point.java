@@ -62,6 +62,7 @@ public class Point implements Comparable<Point> {
         if (that == null) throw new NullPointerException();
         if (compareTo(that) == 0) return Double.NEGATIVE_INFINITY;
         if (that.x == x) return Double.POSITIVE_INFINITY;
+        if (that.y == y) return +0.0;
 
         return ((double) that.y - y) / (that.x - x);
     }
@@ -149,9 +150,14 @@ public class Point implements Comparable<Point> {
 
         p = new Point(12747, 7468);
         q = new Point(28564, 7468);
-        assert p.slopeTo(q) == 0;
-        assert q.slopeTo(p) == 0;
 
+        assert ((Double) p.slopeTo(q)).equals(0.0);
+        assert ((Double) p.slopeTo(q)).equals(0.0);
+
+        p = new Point(8805, 27032);
+        q = new Point(3356, 27032);
+        assert p.slopeTo(q) == +0;
+        assert q.slopeTo(p) == +0;
 
         p = new Point(2, 2);
         q = new Point(1, 1);
