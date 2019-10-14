@@ -1,7 +1,8 @@
 /* *****************************************************************************
- *  Name:
- *  Date:
- *  Description:
+ *  Name: Eugene Borys
+ *  Date: 14/10/2019
+ *  Description: Lookup of collinear semgent with 4 points
+ *  by check all 4 points combinations
  **************************************************************************** */
 
 import java.util.Comparator;
