@@ -108,7 +108,7 @@ public class Board implements Cloneable {
         return new Board(singleDimensionTiles).swap(left, right);
     }
 
-    public Board clone() {
+    public Object clone() {
         return new Board(singleDimensionTiles);
     }
 
@@ -195,7 +195,7 @@ public class Board implements Cloneable {
         assert !b2.isGoal();
 
         // clone
-        Board bClone = b.clone();
+        Board bClone = (Board) b.clone();
         assert bClone != b && bClone.equals(b);
         assert bClone.isGoal();
         bClone.swap(3, 4);
