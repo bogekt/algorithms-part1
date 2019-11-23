@@ -80,27 +80,27 @@ public class DynamicMedian<T> {
     public static void main(String[] args) {
         DynamicMedian<Integer> medianInsertDelete = new DynamicMedian<Integer>(10);
         medianInsertDelete.insert(3);
-        assert medianInsertDelete.findMedian() == Integer.valueOf(3);
+        assert medianInsertDelete.findMedian().equals(3);
 
         medianInsertDelete.insert(8);
-        assert medianInsertDelete.findMedian() == Integer.valueOf(3);
+        assert medianInsertDelete.findMedian().equals(3);
 
         medianInsertDelete.insert(7);
-        assert medianInsertDelete.findMedian() == Integer.valueOf(7);
+        assert medianInsertDelete.findMedian().equals(7);
 
         medianInsertDelete.insert(6);
-        assert medianInsertDelete.findMedian() == Integer.valueOf(6);
+        assert medianInsertDelete.findMedian().equals(6);
 
         medianInsertDelete.insert(9);
-        assert medianInsertDelete.findMedian() == Integer.valueOf(7);
+        assert medianInsertDelete.findMedian().equals(7);
 
         medianInsertDelete.insert(5);
-        assert medianInsertDelete.findMedian() == Integer.valueOf(6);
+        assert medianInsertDelete.findMedian().equals(6);
 
         medianInsertDelete.insert(2);
-        assert medianInsertDelete.findMedian() == Integer.valueOf(6);
+        assert medianInsertDelete.findMedian().equals(6);
 
         medianInsertDelete.delMedian();
-        assert medianInsertDelete.findMedian() == Integer.valueOf(5);
+        assert medianInsertDelete.findMedian().equals(5);
     }
 }
