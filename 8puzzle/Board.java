@@ -10,7 +10,7 @@ import edu.princeton.cs.algs4.StdRandom;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
-public class Board implements Cloneable {
+public class Board {
     private final int n2;
     private final int n;
     private final char[] singleDimensionTiles;
@@ -34,10 +34,10 @@ public class Board implements Cloneable {
             }
     }
 
-    private Board(char[] singleDimensionTiles) {
-        n = (int) Math.sqrt(singleDimensionTiles.length);
-        n2 = singleDimensionTiles.length;
-        this.singleDimensionTiles = singleDimensionTiles.clone();
+    private Board(Board other) {
+        n = other.n;
+        n2 = other.n2;
+        this.singleDimensionTiles = other.singleDimensionTiles.clone();
     }
 
     // string representation of this board
@@ -105,11 +105,7 @@ public class Board implements Cloneable {
             right = left == n2 - 1 ? 0 : left + 1;
         } while (left != 0 && right != 0);
 
-        return new Board(singleDimensionTiles).swap(left, right);
-    }
-
-    public Object clone() {
-        return new Board(singleDimensionTiles);
+        return new Board(this).swap(left, right);
     }
 
     private int toSingleDimension(int row, int col) {
@@ -195,7 +191,7 @@ public class Board implements Cloneable {
         assert !b2.isGoal();
 
         // clone
-        Board bClone = (Board) b.clone();
+        Board bClone = new Board(b);
         assert bClone != b && bClone.equals(b);
         assert bClone.isGoal();
         bClone.swap(3, 4);
