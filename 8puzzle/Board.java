@@ -8,12 +8,15 @@ import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.StdRandom;
 
 import java.util.Arrays;
-import java.util.NoSuchElementException;
 
 public class Board {
     private final int n2;
     private final int n;
     private final char[] singleDimensionTiles;
+    private final String boardString;
+    private final boolean isGoal;
+    private final int hamming;
+    private final int manhattan;
 
     // create a board from an n-by-n array of tiles,
     // where tiles[row][col] = tile at (row, col)
@@ -22,26 +25,11 @@ public class Board {
 
         n = tiles.length;
         n2 = n * n;
+
         singleDimensionTiles = new char[n2];
-
-
-        for (int i = 0; i < n; i++)
-            for (int j = 0; j < n; j++) {
-                if (j >= tiles[i].length) throw new IllegalArgumentException();
-                int value = tiles[i][j];
-                if (value > 127) throw new IllegalArgumentException();
-                setTile(i, j, (char) value);
-            }
-    }
-
-    private Board(Board other) {
-        n = other.n;
-        n2 = other.n2;
-        this.singleDimensionTiles = other.singleDimensionTiles.clone();
-    }
-
-    // string representation of this board
-    public String toString() {
+        boolean canBeGoal = true;
+        int hammingCounter = 0;
+        int manhattanCounter = 0;
         // 128 is max n + whitespace = 4 symbols
         // 128*128 is 5 symbols + whitespace = 6 symbols
         // n2 * 6 + 4
@@ -50,12 +38,58 @@ public class Board {
 
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
-                sb.append(" ").append(tile(i, j));
+                if (j >= tiles[i].length) throw new IllegalArgumentException();
+
+                int value = tiles[i][j];
+                if (value > 127) throw new IllegalArgumentException();
+
+                int k = toSingleDimension(i, j);
+                singleDimensionTiles[k] = (char) value;
+
+                if (notLast(k)) {
+                    if (k > 0) canBeGoal = singleDimensionTiles[k - 1] < value;
+                    if (singleDimensionTiles[k] != k + 1) hammingCounter++;
+                    manhattanCounter += Math.abs(singleDimensionTiles[k] - (k + 1));
+                }
+                else if (value != 0) {
+                    canBeGoal = false;
+                    hammingCounter++;
+                    manhattanCounter++;
+                }
+
+                if (value == 0) {
+                    // TODO neighbors
+                }
+                // string
+                sb.append(" ").append(value);
             }
             sb.append(System.lineSeparator());
         }
 
-        return sb.toString();
+        isGoal = canBeGoal;
+        hamming = hammingCounter;
+        manhattan = manhattanCounter;
+        boardString = sb.toString();
+    }
+
+    private boolean notLast(int k) {
+        return k < n2 - 1;
+    }
+
+    // copy constructor
+    private Board(Board other) {
+        n = other.n;
+        n2 = other.n2;
+        singleDimensionTiles = other.singleDimensionTiles.clone();
+        isGoal = other.isGoal;
+        hamming = other.hamming;
+        manhattan = other.manhattan;
+        boardString = other.boardString;
+    }
+
+    // string representation of this board
+    public String toString() {
+        return boardString;
     }
 
     // board dimension n
@@ -65,20 +99,17 @@ public class Board {
 
     // number of tiles out of place
     public int hamming() {
-        return -1;
+        return hamming;
     }
 
     // sum of Manhattan distances between tiles and goal
     public int manhattan() {
-        return -1;
+        return manhattan;
     }
 
     // is this board the goal board?
     public boolean isGoal() {
-        for (int i = 1; i < n2; i++)
-            if (!less(i - 1, i)) return false;
-
-        return true;
+        return isGoal;
     }
 
     // does this board equal y?
@@ -105,69 +136,67 @@ public class Board {
             right = left == n2 - 1 ? 0 : left + 1;
         } while (left != 0 && right != 0);
 
-        return new Board(this).swap(left, right);
+        Board twin = new Board(this);
+        swap(twin.singleDimensionTiles, left, right);
+
+        return twin;
     }
 
     private int toSingleDimension(int row, int col) {
         return row * n + col;
     }
 
-    private int tile(int row, int col) {
-        return singleDimensionTiles[toSingleDimension(row, col)];
-    }
-
-    private Board setTile(int row, int col, char value) {
-        singleDimensionTiles[toSingleDimension(row, col)] = value;
-
-        return this;
-    }
-
-    private boolean less(int i, int j) {
-        return singleDimensionTiles[i] < singleDimensionTiles[j];
-    }
-
-    private Board swap(int i, int j) {
-        char temp = singleDimensionTiles[i];
-        singleDimensionTiles[i] = singleDimensionTiles[j];
-        singleDimensionTiles[j] = temp;
-
-        return this;
-    }
-
-    private int blankTileIndex() {
-        for (int i = 0; i < n2; i++)
-            if (singleDimensionTiles[i] == 0) return i;
-        throw new NoSuchElementException();
+    private static void swap(char[] array, int i, int j) {
+        char temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
     }
 
     // unit testing (not graded)
     public static void main(String[] args) {
+
         Board b = new Board(new int[][] {
-                { 0, 1, 2 },
-                { 3, 4, 5 },
-                { 6, 7, 8 },
+                { 1, 2, 3 },
+                { 4, 5, 6 },
+                { 7, 8, 0 },
                 });
 
         Board b2 = new Board(new int[][] {
-                { 0, 1, 6 },
-                { 8, 7, 5 },
-                { 2, 4, 3 },
+                { 0, 2 },
+                { 1, 3 },
                 });
 
         // same as b
         Board b3 = new Board(new int[][] {
-                { 0, 1, 2 },
-                { 3, 4, 5 },
-                { 6, 7, 8 },
+                { 1, 2, 3 },
+                { 4, 5, 6 },
+                { 7, 8, 0 },
                 });
+
+        // private
+        // clone
+        Board bClone = new Board(b);
+        assert bClone != b && bClone.equals(b);
+        assert bClone.n == b.n;
+        assert bClone.n2 == b.n2;
+        assert Arrays.equals(bClone.singleDimensionTiles, b.singleDimensionTiles);
+
+        // dimension
+        assert b.dimension() == 3;
+        assert b2.dimension() == 2;
 
         // string
         String bString = b.toString();
         StdOut.print(bString);
         assert bString.startsWith(String.valueOf(b.dimension()));
-        assert bString.contains(" 0 1 2");
-        assert bString.contains(" 3 4 5");
-        assert bString.contains(" 6 7 8");
+        assert bString.contains(" 1 2 3");
+        assert bString.contains(" 4 5 6");
+        assert bString.contains(" 7 8 0");
+        String b2String = b2.toString();
+        StdOut.print(b2String);
+        assert b2String.startsWith(String.valueOf(b2.dimension()));
+        assert b2String.contains(" 0 2");
+        assert b2String.contains(" 1 3");
 
         // equals
         // null
@@ -177,27 +206,18 @@ public class Board {
         assert !b.equals(o) && !b2.equals(o) && !b3.equals(o);
         // same type
         assert !b.equals(b2) && !b2.equals(b) && !b3.equals(b2) && !b2.equals(b3);
-        // equals
+        // equal
         assert b.equals(b) && b2.equals(b2) && b3.equals(b3);
         assert b3.equals(b) && b.equals(b3);
 
 
         // goal
         assert b.isGoal() && b3.isGoal() && !b2.isGoal();
-        b.swap(3, 4);
-        assert !b.isGoal();
-        b.swap(3, 4);
-        assert b.isGoal();
-        assert !b2.isGoal();
-
-        // clone
-        Board bClone = new Board(b);
-        assert bClone != b && bClone.equals(b);
-        assert bClone.isGoal();
-        bClone.swap(3, 4);
-        assert !bClone.isGoal();
-        bClone.swap(3, 4);
-        assert bClone.isGoal();
+        // swap(b.singleDimensionTiles, 3, 4);
+        // assert !b.isGoal();
+        // swap(b.singleDimensionTiles, 3, 4);
+        // assert b.isGoal();
+        // assert !b2.isGoal();
 
         // twins
     }
