@@ -18,6 +18,10 @@ public class Board {
     private final int hamming;
     private final int manhattan;
 
+    private static boolean isBlankTile(char value) {
+        return value == 0;
+    }
+
     // create a board from an n-by-n array of tiles,
     // where tiles[row][col] = tile at (row, col)
     public Board(int[][] tiles) {
@@ -40,28 +44,27 @@ public class Board {
             for (int j = 0; j < n; j++) {
                 if (j >= tiles[i].length) throw new IllegalArgumentException();
 
-                int value = tiles[i][j];
-                if (value > 127) throw new IllegalArgumentException();
+                int origin = tiles[i][j];
+                if (origin > 127) throw new IllegalArgumentException();
 
                 int k = toSingleDimension(i, j);
-                singleDimensionTiles[k] = (char) value;
+                char value = (char) origin;
+                singleDimensionTiles[k] = value;
 
-                if (notLast(k)) {
-                    if (k > 0) canBeGoal = singleDimensionTiles[k - 1] < value;
-                    if (singleDimensionTiles[k] != k + 1) hammingCounter++;
-                    manhattanCounter += Math.abs(singleDimensionTiles[k] - (k + 1));
+                if (!isBlankTile(value)) {
+                    if (value != k + 1) {
+                        canBeGoal = false;
+                        hammingCounter++;
+                        manhattanCounter += Math.abs(i - toRow(value))
+                                + Math.abs(j + 1 - toCol(value));
+                    }
+                    if (canBeGoal && k > 0) canBeGoal = singleDimensionTiles[k - 1] < value;
                 }
-                else if (value != 0) {
-                    canBeGoal = false;
-                    hammingCounter++;
-                    manhattanCounter++;
-                }
-
-                if (value == 0) {
+                else if (isBlankTile(value)) {
                     // TODO neighbors
                 }
                 // string
-                sb.append(" ").append(value);
+                sb.append(" ").append(origin);
             }
             sb.append(System.lineSeparator());
         }
@@ -70,10 +73,6 @@ public class Board {
         hamming = hammingCounter;
         manhattan = manhattanCounter;
         boardString = sb.toString();
-    }
-
-    private boolean notLast(int k) {
-        return k < n2 - 1;
     }
 
     // copy constructor
@@ -129,21 +128,33 @@ public class Board {
 
     // a board that is obtained by exchanging any pair of tiles
     public Board twin() {
-        int left, right;
+        int leftIndex, rightIndex;
 
         do {
-            left = StdRandom.uniform(n2);
-            right = left == n2 - 1 ? 0 : left + 1;
-        } while (left != 0 && right != 0);
+            leftIndex = StdRandom.uniform(n2);
+            rightIndex = leftIndex == n2 - 1 ? 0 : leftIndex + 1;
+        } while (!isBlankTileIndex(leftIndex) && !isBlankTileIndex(rightIndex));
 
         Board twin = new Board(this);
-        swap(twin.singleDimensionTiles, left, right);
+        swap(twin.singleDimensionTiles, leftIndex, rightIndex);
 
         return twin;
     }
 
+    private boolean isBlankTileIndex(int index) {
+        return isBlankTile(singleDimensionTiles[index]);
+    }
+
     private int toSingleDimension(int row, int col) {
         return row * n + col;
+    }
+
+    private int toRow(int k) {
+        return Math.floorDiv(k, n);
+    }
+
+    private int toCol(int k) {
+        return k % n;
     }
 
     private static void swap(char[] array, int i, int j) {
@@ -154,7 +165,6 @@ public class Board {
 
     // unit testing (not graded)
     public static void main(String[] args) {
-
         Board b = new Board(new int[][] {
                 { 1, 2, 3 },
                 { 4, 5, 6 },
@@ -173,6 +183,18 @@ public class Board {
                 { 7, 8, 0 },
                 });
 
+        Board b4 = new Board(new int[][] {
+                { 0, 2, 1 },
+                { 4, 3, 6 },
+                { 8, 7, 5 },
+                });
+
+        Board b5 = new Board(new int[][] {
+                { 8, 1, 3 },
+                { 4, 0, 2 },
+                { 7, 6, 5 },
+                });
+
         // private
         // clone
         Board bClone = new Board(b);
@@ -180,6 +202,10 @@ public class Board {
         assert bClone.n == b.n;
         assert bClone.n2 == b.n2;
         assert Arrays.equals(bClone.singleDimensionTiles, b.singleDimensionTiles);
+        assert bClone.isGoal == b.isGoal;
+        assert bClone.hamming == b.hamming;
+        assert bClone.manhattan == b.manhattan;
+        assert bClone.boardString == b.boardString;
 
         // dimension
         assert b.dimension() == 3;
@@ -208,17 +234,27 @@ public class Board {
         assert !b.equals(b2) && !b2.equals(b) && !b3.equals(b2) && !b2.equals(b3);
         // equal
         assert b.equals(b) && b2.equals(b2) && b3.equals(b3);
+        assert !b.equals(b4) && !b4.equals(b);
         assert b3.equals(b) && b.equals(b3);
 
 
         // goal
-        assert b.isGoal() && b3.isGoal() && !b2.isGoal();
-        // swap(b.singleDimensionTiles, 3, 4);
-        // assert !b.isGoal();
-        // swap(b.singleDimensionTiles, 3, 4);
-        // assert b.isGoal();
-        // assert !b2.isGoal();
+        assert b.isGoal() && b3.isGoal();
+        assert !b2.isGoal() && !b4.isGoal();
+
+        // hamming
+        assert b.hamming() == 0 && b3.hamming() == 0;
+        assert b2.hamming() == 2;
+        assert b4.hamming() == 5;
+        assert b5.hamming() == 5;
+
+        // manhattan
+        assert b.manhattan() == 0 && b3.manhattan() == 0;
+        assert b2.manhattan() == 2;
+        assert b4.manhattan() == 8;
+        assert b5.manhattan() == 10;
 
         // twins
+        // TODO
     }
 }
