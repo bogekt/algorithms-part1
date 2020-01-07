@@ -14,118 +14,42 @@ public class Board {
     private final int n2;
     private final int n;
     private final char[] singleDimensionTiles;
-    private final String boardString;
-    private final boolean isGoal;
-    private final int blankTitleIndex;
-    private final int hamming;
-    private final int manhattan;
-
-    class BoardInitializer {
-        private int n;
-        private int n2;
-        private boolean isGoal;
-        private int hammingAccumulator;
-        private int manhattanAccumulator;
-        private int blankTitleIndex;
-        private char[] singleDimensionTiles;
-        // 128 is max n + whitespace = 4 symbols
-        // 128*128 is 5 symbols + whitespace = 6 symbols
-        // n2 * 6 + 4
-        private StringBuilder sb;
-        private boolean neighbor;
-
-        BoardInitializer(int n, boolean neighbor) {
-            this.n = n;
-            this.n2 = n * n;
-            this.neighbor = neighbor;
-            sb = new StringBuilder();
-            sb.append(n).append(System.lineSeparator());
-            isGoal = true;
-            blankTitleIndex = 0;
-            // todo
-            singleDimensionTiles = new char[n2];
-
-            if (neighbor) return;
-
-            hammingAccumulator = 0;
-            manhattanAccumulator = 0;
-        }
-
-        private void tile(int tile, int i, int j) {
-            if (tile > 127) throw new IllegalArgumentException();
-
-            int k = toSingleDimension(i, j, n);
-            char value = (char) tile;
-
-            singleDimensionTiles[k] = value;
-
-            if (isBlankTile(value)) {
-                blankTitleIndex = k;
-            }
-            else {
-                if (value != k + 1) {
-                    isGoal = false;
-
-                    if (!neighbor) {
-                        hammingAccumulator++;
-                        manhattanAccumulator += Math.abs(i - toRow(value, n))
-                                + Math.abs(j + 1 - toCol(value, n));
-                    }
-                }
-                if (isGoal && k > 0) isGoal = singleDimensionTiles[k - 1] < value;
-            }
-            // string
-            sb.append(" ").append(tile);
-
-            if (j == n - 1) sb.append(System.lineSeparator());
-        }
-    }
 
     // create a board from an n-by-n array of tiles,
     // where tiles[row][col] = tile at (row, col)
     public Board(int[][] tiles) {
         if (tiles == null) throw new IllegalArgumentException();
 
-        BoardInitializer initializer = new BoardInitializer(tiles.length, false);
+        n = tiles.length;
+        n2 = n * n;
+        singleDimensionTiles = new char[n2];
 
         for (int i = 0; i < tiles.length; i++)
             for (int j = 0; j < tiles[i].length; j++)
-                initializer.tile(tiles[i][j], i, j);
-
-        n = initializer.n;
-        n2 = initializer.n2;
-        singleDimensionTiles = initializer.singleDimensionTiles.clone();
-        isGoal = initializer.isGoal;
-        hamming = initializer.hammingAccumulator;
-        manhattan = initializer.manhattanAccumulator;
-        blankTitleIndex = initializer.blankTitleIndex;
-        boardString = initializer.sb.toString();
+                if (tiles[i][j] > 127) throw new IllegalArgumentException();
+                else singleDimensionTiles[toSingleDimension(i, j, n)] = (char) tiles[i][j];
     }
 
-    // neighbor constructor
-    public Board(char[] singleDimensionTiles, int hamming, int manhattan) {
-        int n = (int) Math.sqrt(singleDimensionTiles.length);
-        BoardInitializer initializer = new BoardInitializer(n, true);
-
-        for (int k = 0; k < singleDimensionTiles.length; k++) {
-            int i = toRow(k, n);
-            int j = toCol(k, n);
-            initializer.tile(singleDimensionTiles[k], i, j);
-        }
-
-        n2 = initializer.n2;
-        isGoal = initializer.isGoal;
-        blankTitleIndex = initializer.blankTitleIndex;
-        boardString = initializer.sb.toString();
-        this.n = initializer.n;
-        this.singleDimensionTiles = initializer.singleDimensionTiles.clone();
-        this.hamming = hamming;
-        this.manhattan = manhattan;
+    // copy constructor
+    public Board(char[] singleDimensionTiles, int n, int n2) {
+        this.n = n;
+        this.n2 = n2;
+        this.singleDimensionTiles = singleDimensionTiles.clone();
+        assert n * n == n2;
+        assert singleDimensionTiles.length == n2;
     }
 
     // string representation of this board
     public String toString() {
-        return boardString;
+        StringBuilder sb = new StringBuilder();
+        sb.append(n).append(System.lineSeparator());
+
+        for (int k = 0; k < n2; k++) {
+            sb.append(" ").append(Integer.valueOf(singleDimensionTiles[k]));
+            if (toCol(k, n) == n - 1) sb.append(System.lineSeparator());
+        }
+
+        return sb.toString();
     }
 
     // board dimension n
@@ -135,17 +59,42 @@ public class Board {
 
     // number of tiles out of place
     public int hamming() {
+        int hamming = 0;
+
+        for (int k = 0; k < n2; k++)
+            if (isBlankTileIndex(k) || isGoalTile(k)) continue;
+            else hamming++;
+
         return hamming;
     }
 
     // sum of Manhattan distances between tiles and goal
     public int manhattan() {
+        int manhattan = 0;
+
+        for (int k = 0; k < n2; k++) {
+            char tile = singleDimensionTiles[k];
+
+            if (isBlankTileIndex(k) || isGoalTile(k)) continue;
+
+            int i = toRow(k, n);
+            int j = toCol(k, n);
+
+            manhattan += Math.abs(i - toRow(tile, n)) + Math.abs(j + 1 - toCol(tile, n));
+        }
+
         return manhattan;
     }
 
     // is this board the goal board?
     public boolean isGoal() {
-        return isGoal;
+        if (!isBlankTileIndex(n2 - 1)) return false;
+
+        for (int k = 0; k < n2 - 1; k++)
+            if (!isGoalTile(k)) return false;
+            else if (isBlankTileIndex(k)) return false;
+
+        return true;
     }
 
     // does this board equal y?
@@ -162,19 +111,19 @@ public class Board {
     public Iterable<Board> neighbors() {
         // todo
         Bag<Board> neighbors = new Bag<>();
-        int col = toCol(blankTitleIndex, singleDimensionTiles.length);
-        int row = toRow(blankTitleIndex, singleDimensionTiles.length);
-        // left
-        if (col != 0) {
-            int leftIndex = blankTitleIndex - 1;
-            char[] leftSingleDimensionTiles = singleDimensionTiles.clone();
-            // todo hamming + manhattan
-            boolean decrease = leftSingleDimensionTiles[leftIndex] == blankTitleIndex;
-            int hamming = this.hamming + (decrease ? -1 : 1);
-            int manhattan = this.manhattan + (decrease ? -1 : 1);
-            swap(leftSingleDimensionTiles, blankTitleIndex - 1, blankTitleIndex);
-            neighbors.add(new Board(leftSingleDimensionTiles, hamming, manhattan));
-        }
+        // int col = toCol(blankTitleIndex, singleDimensionTiles.length);
+        // int row = toRow(blankTitleIndex, singleDimensionTiles.length);
+        // // left§
+        // if (col != 0) {
+        //     int leftIndex = blankTitleIndex - 1;
+        //     char[] leftSingleDimensionTiles = singleDimensionTiles.clone();
+        //     // todo hamming + manhattan
+        //     boolean decrease = leftSingleDimensionTiles[leftIndex] == blankTitleIndex;
+        //     // int hamming = this.hamming + (decrease ? -1 : 1);
+        //     // int manhattan = this.manhattan + (decrease ? -1 : 1);
+        //     swap(leftSingleDimensionTiles, blankTitleIndex - 1, blankTitleIndex);
+        //     // neighbors.add(new Board(leftSingleDimensionTiles, hamming, manhattan));
+        // }
 
         return neighbors;
     }
@@ -182,21 +131,32 @@ public class Board {
     // a board that is obtained by exchanging any pair of tiles
     public Board twin() {
         int leftIndex, rightIndex;
+        int blankTileIndex = blankTileIndex();
 
         do {
             leftIndex = StdRandom.uniform(n2);
             rightIndex = leftIndex == n2 - 1 ? 0 : leftIndex + 1;
-        } while (!isBlankTileIndex(leftIndex) && !isBlankTileIndex(rightIndex));
+        } while (leftIndex != blankTileIndex && rightIndex != blankTileIndex);
 
         char[] twinSingleDimensionTiles = singleDimensionTiles.clone();
         swap(twinSingleDimensionTiles, leftIndex, rightIndex);
 
-        // todo hamming + manhattan
-        return new Board(twinSingleDimensionTiles, -1, -1);
+        return new Board(twinSingleDimensionTiles, n, n2);
+    }
+
+    // does tile is the same, as in goal board
+    private boolean isGoalTile(int index) {
+        return singleDimensionTiles[index] == index + 1;
+    }
+
+    private int blankTileIndex() {
+        for (int k = 0; k < n2; k++)
+            if (isBlankTileIndex(k)) return k;
+        throw new IndexOutOfBoundsException();
     }
 
     private boolean isBlankTileIndex(int index) {
-        return isBlankTile(singleDimensionTiles[index]);
+        return singleDimensionTiles[index] == 0;
     }
 
     private static int toSingleDimension(int row, int col, int n) {
@@ -215,10 +175,6 @@ public class Board {
         char temp = array[i];
         array[i] = array[j];
         array[j] = temp;
-    }
-
-    private static boolean isBlankTile(char value) {
-        return value == 0;
     }
 
     // unit testing (not graded)
@@ -257,31 +213,27 @@ public class Board {
                 });
         // neighbors left (h:6, m:11) top (h:5, m:11) right (h:5, m:9) bottom (h:5, m:9)
 
-        Board b6 = new Board(new int[][] {
-                { 2, 0, 1 },
-                { 4, 3, 6 },
-                { 8, 7, 5 },
-                });
-        // neighbors left (h:6, m:9) right (h:6, m:8) bottom (h:6, m:8)
-
-        Board b7 = new Board(new int[][] {
-                { 2, 3, 1 },
-                { 4, 7, 6 },
-                { 8, 0, 5 },
-                });
-        // neighbors left top right
+        // Board b6 = new Board(new int[][] {
+        //         { 2, 0, 1 },
+        //         { 4, 3, 6 },
+        //         { 8, 7, 5 },
+        //         });
+        // // neighbors left (h:6, m:9) right (h:6, m:8) bottom (h:6, m:8)
+        //
+        // Board b7 = new Board(new int[][] {
+        //         { 2, 3, 1 },
+        //         { 4, 7, 6 },
+        //         { 8, 0, 5 },
+        //         });
+        // // neighbors left top right
 
         // private
         // clone
-        Board bClone = new Board(b.singleDimensionTiles, -1, -1);
+        Board bClone = new Board(b.singleDimensionTiles, b.n, b.n2);
         assert bClone != b && bClone.equals(b);
         assert bClone.n == b.n;
         assert bClone.n2 == b.n2;
         assert Arrays.equals(bClone.singleDimensionTiles, b.singleDimensionTiles);
-        assert bClone.isGoal == b.isGoal;
-        assert bClone.hamming == -1;
-        assert bClone.manhattan == -1;
-        assert bClone.boardString.equals(b.boardString);
 
         // dimension
         assert b.dimension() == 3;
