@@ -109,23 +109,58 @@ public class Board {
 
     // all neighboring boards
     public Iterable<Board> neighbors() {
-        // todo
-        Bag<Board> neighbors = new Bag<>();
-        // int col = toCol(blankTitleIndex, singleDimensionTiles.length);
-        // int row = toRow(blankTitleIndex, singleDimensionTiles.length);
-        // // left§
-        // if (col != 0) {
-        //     int leftIndex = blankTitleIndex - 1;
-        //     char[] leftSingleDimensionTiles = singleDimensionTiles.clone();
-        //     // todo hamming + manhattan
-        //     boolean decrease = leftSingleDimensionTiles[leftIndex] == blankTitleIndex;
-        //     // int hamming = this.hamming + (decrease ? -1 : 1);
-        //     // int manhattan = this.manhattan + (decrease ? -1 : 1);
-        //     swap(leftSingleDimensionTiles, blankTitleIndex - 1, blankTitleIndex);
-        //     // neighbors.add(new Board(leftSingleDimensionTiles, hamming, manhattan));
-        // }
+        int index = blankTileIndex();
+        int row = toRow(index, n);
+        int col = toCol(index, n);
 
-        return neighbors;
+        Bag<Neighbor> neighbors = new Bag<>();
+
+        if (col != n - 1) neighbors.add(Neighbor.RIGHT);
+        if (row != 0) neighbors.add(Neighbor.TOP);
+        if (row != n - 1) neighbors.add(Neighbor.BOTTOM);
+        if (col != 0) neighbors.add(Neighbor.LEFT);
+
+        Bag<Board> neighborsBoards = new Bag<>();
+
+        for (Neighbor neighbor : neighbors)
+            neighborsBoards.add(neighbor(neighbor, row, col, index));
+
+        return neighborsBoards;
+    }
+
+    private enum Neighbor {
+        LEFT, RIGHT, TOP, BOTTOM;
+    }
+
+    private Board neighbor(
+            Neighbor neighbor,
+            int blankTileRow,
+            int blankTileCol,
+            int blankTileIndex
+    ) {
+        char[] neighborSingleDimensionTiles = singleDimensionTiles.clone();
+        int swapIndex;
+
+        switch (neighbor) {
+            case TOP:
+                swapIndex = toSingleDimension(blankTileRow - 1, blankTileCol, n);
+                break;
+            case RIGHT:
+                swapIndex = toSingleDimension(blankTileRow, blankTileCol + 1, n);
+                break;
+            case BOTTOM:
+                swapIndex = toSingleDimension(blankTileRow + 1, blankTileCol, n);
+                break;
+            case LEFT:
+                swapIndex = toSingleDimension(blankTileRow, blankTileCol - 1, n);
+                break;
+            default:
+                throw new UnsupportedOperationException();
+        }
+
+        swap(neighborSingleDimensionTiles, blankTileIndex, swapIndex);
+
+        return new Board(neighborSingleDimensionTiles, n, n2);
     }
 
     // a board that is obtained by exchanging any pair of tiles
@@ -213,19 +248,19 @@ public class Board {
                 });
         // neighbors left (h:6, m:11) top (h:5, m:11) right (h:5, m:9) bottom (h:5, m:9)
 
-        // Board b6 = new Board(new int[][] {
-        //         { 2, 0, 1 },
-        //         { 4, 3, 6 },
-        //         { 8, 7, 5 },
-        //         });
-        // // neighbors left (h:6, m:9) right (h:6, m:8) bottom (h:6, m:8)
-        //
-        // Board b7 = new Board(new int[][] {
-        //         { 2, 3, 1 },
-        //         { 4, 7, 6 },
-        //         { 8, 0, 5 },
-        //         });
-        // // neighbors left top right
+        Board b6 = new Board(new int[][] {
+                { 2, 0, 1 },
+                { 4, 3, 6 },
+                { 8, 7, 5 },
+                });
+        // neighbors left (h:6, m:9) right (h:6, m:8) bottom (h:6, m:8)
+
+        Board b7 = new Board(new int[][] {
+                { 2, 3, 1 },
+                { 4, 7, 6 },
+                { 8, 0, 5 },
+                });
+        // neighbors left top right
 
         // private
         // clone
@@ -265,10 +300,9 @@ public class Board {
         assert !b.equals(b4) && !b4.equals(b);
         assert b3.equals(b) && b.equals(b3);
 
-
         // goal
         assert b.isGoal() && b3.isGoal();
-        assert !b2.isGoal() && !b4.isGoal();
+        assert !b2.isGoal() && !b4.isGoal() && !b5.isGoal() && !b6.isGoal() && !b7.isGoal();
 
         // hamming
         assert b.hamming() == 0 && b3.hamming() == 0;
@@ -283,10 +317,170 @@ public class Board {
         assert b5.manhattan() == 10;
 
         // neighbors
-        // left
-        assert !b2.neighbors().iterator().hasNext();
-
+        assert size(b2.neighbors()) == 2 && size(b.neighbors()) == 2;
+        assert size(b6.neighbors()) == 3 && size(b7.neighbors()) == 3;
+        assert size(b5.neighbors()) == 4;
+        // b
+        assert any(
+                b.neighbors(),
+                new Board(new int[][] {
+                        { 1, 2, 3 },
+                        { 4, 5, 0 },
+                        { 7, 8, 6 },
+                        })
+        );
+        assert any(
+                b.neighbors(),
+                new Board(new int[][] {
+                        { 1, 2, 3 },
+                        { 4, 5, 6 },
+                        { 7, 0, 8 },
+                        })
+        );
+        // b2
+        assert any(
+                b2.neighbors(),
+                new Board(new int[][] {
+                        { 2, 0 },
+                        { 1, 3 },
+                        })
+        );
+        assert any(
+                b2.neighbors(),
+                new Board(new int[][] {
+                        { 1, 2 },
+                        { 0, 3 },
+                        })
+        );
+        // b5
+        assert any(
+                b5.neighbors(),
+                new Board(new int[][] {
+                        { 8, 0, 3 },
+                        { 4, 1, 2 },
+                        { 7, 6, 5 },
+                        })
+        );
+        assert any(
+                b5.neighbors(),
+                new Board(new int[][] {
+                        { 8, 1, 3 },
+                        { 4, 2, 0 },
+                        { 7, 6, 5 },
+                        })
+        );
+        assert any(
+                b5.neighbors(),
+                new Board(new int[][] {
+                        { 8, 1, 3 },
+                        { 4, 6, 2 },
+                        { 7, 0, 5 },
+                        })
+        );
+        assert any(
+                b5.neighbors(),
+                new Board(new int[][] {
+                        { 8, 1, 3 },
+                        { 0, 4, 2 },
+                        { 7, 6, 5 },
+                        })
+        );
+        // b6
+        assert any(
+                b6.neighbors(),
+                new Board(new int[][] {
+                        { 2, 1, 0 },
+                        { 4, 3, 6 },
+                        { 8, 7, 5 },
+                        })
+        );
+        assert any(
+                b6.neighbors(),
+                new Board(new int[][] {
+                        { 2, 3, 1 },
+                        { 4, 0, 6 },
+                        { 8, 7, 5 },
+                        })
+        );
+        assert any(
+                b6.neighbors(),
+                new Board(new int[][] {
+                        { 0, 2, 1 },
+                        { 4, 3, 6 },
+                        { 8, 7, 5 },
+                        })
+        );
+        // b7
+        assert any(
+                b7.neighbors(),
+                new Board(new int[][] {
+                        { 2, 3, 1 },
+                        { 4, 0, 6 },
+                        { 8, 7, 5 },
+                        })
+        );
+        assert any(
+                b7.neighbors(),
+                new Board(new int[][] {
+                        { 2, 3, 1 },
+                        { 4, 7, 6 },
+                        { 8, 5, 0 },
+                        })
+        );
+        assert any(
+                b7.neighbors(),
+                new Board(new int[][] {
+                        { 2, 3, 1 },
+                        { 4, 7, 6 },
+                        { 0, 8, 5 },
+                        })
+        );
         // twins
-        // todo
+        boolean differentTwins = false;
+        int count = 0;
+        while (!differentTwins && count++ < 2)
+            differentTwins = !b.twin().equals(b.twin());
+        assert differentTwins;
+        assert differentPositions(
+                b.singleDimensionTiles,
+                b.twin().singleDimensionTiles
+        ) == 2;
+        assert differentPositions(
+                b.singleDimensionTiles,
+                b.twin().singleDimensionTiles
+        ) == 2;
+        assert differentPositions(
+                b.singleDimensionTiles,
+                b.twin().singleDimensionTiles
+        ) == 2;
+    }
+
+    private static int differentPositions(char[] a, char[] b) {
+        assert a.length == b.length;
+
+        int diffs = 0;
+
+        for (int i = 0; i < a.length; i++)
+            if (a[i] != b[i])
+                if (new String(b).indexOf(a[i]) != -1) diffs++;
+                else throw new IllegalArgumentException();
+
+        return diffs;
+    }
+
+    private static <T> boolean any(Iterable<T> iterable, Object check) {
+        for (T value : iterable)
+            if (value.equals(check)) return true;
+
+        return false;
+    }
+
+    private static <T> long size(Iterable<T> iterable) {
+        int size = 0;
+
+        for (T value : iterable)
+            size++;
+
+        return size;
     }
 }
