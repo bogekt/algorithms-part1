@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 public class Solver {
     // private final Board initial;
-    private MinPQ<SearchNode> priorityQueue;
+    private final MinPQ<SearchNode> queue;
     private SearchNode goalNode;
 
     private class SearchNode implements Comparable<SearchNode> {
@@ -62,29 +62,30 @@ public class Solver {
         if (initial == null) throw new IllegalArgumentException();
 
         // this.initial = initial;
-        priorityQueue = new MinPQ<>();
-        priorityQueue.insert(new SearchNode(initial, 0, null));
-        aStar();
+        queue = new MinPQ<>();
+        queue.insert(new SearchNode(initial, 0, null));
+        goalNode = aStar(queue);
     }
 
-    private void aStar() {
-        while (!priorityQueue.isEmpty()) {
-            SearchNode current = priorityQueue.delMin();
+    private SearchNode aStar(MinPQ<SearchNode> queue) {
+        while (!queue.isEmpty()) {
+            SearchNode current = queue.delMin();
 
-            if (current.board.isGoal()) {
-                goalNode = current;
-                break;
-            }
+            if (current.board.isGoal())
+                return current;
 
             for (SearchNode neighbor : current.neighbors())
                 if (current.previous == null || !neighbor.board.equals(current.previous.board))
-                    priorityQueue.insert(neighbor);
+                    queue.insert(neighbor);
         }
+
+        return null;
     }
 
     // is the initial board solvable? (see below)
     public boolean isSolvable() {
-        return false;
+        // todo
+        return true;
     }
 
     // min number of moves to solve initial board
