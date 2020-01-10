@@ -61,8 +61,8 @@ public class Board {
     public int hamming() {
         int hamming = 0;
 
-        for (int k = 0; k < n2; k++)
-            if (isBlankTileIndex(k) || isGoalTile(k)) continue;
+        for (int k = 0; k < n2 - 1; k++)
+            if (isGoalTileIndex(k)) continue;
             else hamming++;
 
         return hamming;
@@ -72,15 +72,18 @@ public class Board {
     public int manhattan() {
         int manhattan = 0;
 
-        for (int k = 0; k < n2; k++) {
-            char tile = singleDimensionTiles[k];
+        for (int k = 0; k < n2 - 1; k++) {
+            if (isGoalTileIndex(k)) continue;
 
-            if (isBlankTileIndex(k) || isGoalTile(k)) continue;
+            int goalRow = toRow(k, n);
+            int goalCol = toCol(k, n);
+            char goalTile = toGoalTile(k);
+            int goalTileIndex = indexOf(singleDimensionTiles, goalTile);
 
-            int i = toRow(k, n);
-            int j = toCol(k, n);
+            int row = toRow(goalTileIndex, n);
+            int col = toCol(goalTileIndex, n);
 
-            manhattan += Math.abs(i - toRow(tile, n)) + Math.abs(j + 1 - toCol(tile, n));
+            manhattan += Math.abs(goalRow - row) + Math.abs(goalCol - col);
         }
 
         return manhattan;
@@ -91,7 +94,7 @@ public class Board {
         if (!isBlankTileIndex(n2 - 1)) return false;
 
         for (int k = 0; k < n2 - 1; k++)
-            if (!isGoalTile(k)) return false;
+            if (!isGoalTileIndex(k)) return false;
             else if (isBlankTileIndex(k)) return false;
 
         return true;
@@ -179,15 +182,15 @@ public class Board {
         return new Board(twinSingleDimensionTiles, n, n2);
     }
 
-    // does tile is the same, as in goal board
-    private boolean isGoalTile(int index) {
-        return singleDimensionTiles[index] == index + 1;
-    }
-
     private int blankTileIndex() {
         for (int k = 0; k < n2; k++)
             if (isBlankTileIndex(k)) return k;
         throw new IndexOutOfBoundsException();
+    }
+
+    // does tile is the same, as in goal board
+    private boolean isGoalTileIndex(int index) {
+        return singleDimensionTiles[index] == toGoalTile(index);
     }
 
     private boolean isBlankTileIndex(int index) {
@@ -198,18 +201,34 @@ public class Board {
         return row * n + col;
     }
 
-    private static int toRow(int k, int n) {
-        return Math.floorDiv(k, n);
+    private static int toRow(int index, int n) {
+        return Math.floorDiv(index, n);
     }
 
-    private static int toCol(int k, int n) {
-        return k % n;
+    private static int toCol(int index, int n) {
+        return index % n;
+    }
+
+    private static char toGoalTile(int index) {
+        return (char) (index + 1);
     }
 
     private static void swap(char[] array, int i, int j) {
         char temp = array[i];
         array[i] = array[j];
         array[j] = temp;
+    }
+
+    private static int indexOf(char[] array, char value) {
+        int index = -1;
+
+        for (int i = 0; i < array.length; i++)
+            if (array[i] == value) {
+                index = i;
+                break;
+            }
+
+        return index;
     }
 
     // unit testing (not graded)
@@ -261,6 +280,13 @@ public class Board {
                 { 8, 0, 5 },
                 });
         // neighbors left top right
+
+        Board b8 = new Board(new int[][] {
+                { 0, 1, 3 },
+                { 4, 2, 5 },
+                { 7, 8, 6 },
+                });
+        // manhattan = 4
 
         // private
         // clone
@@ -315,6 +341,8 @@ public class Board {
         assert b2.manhattan() == 2;
         assert b4.manhattan() == 8;
         assert b5.manhattan() == 10;
+        assert b8.manhattan() == 4;
+        // manhattan
 
         // neighbors
         assert size(b2.neighbors()) == 2 && size(b.neighbors()) == 2;

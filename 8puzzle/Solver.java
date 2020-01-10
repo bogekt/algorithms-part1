@@ -10,20 +10,33 @@ import edu.princeton.cs.algs4.MinPQ;
 import edu.princeton.cs.algs4.StdOut;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class Solver {
-    // private final Board initial;
-    private final MinPQ<SearchNode> queue;
+    private static final boolean TRACE = true;
     private SearchNode goalNode;
 
+    private final static class SearchNodePriorityComparator implements Comparator<SearchNode> {
+        @Override
+        public int compare(SearchNode o1, SearchNode o2) {
+            if (o1 == null || o2 == null) throw new NullPointerException();
+
+            return o1.priority() - o2.priority();
+        }
+    }
+
+    private static final SearchNodePriorityComparator SearchNodeComparator
+            = new SearchNodePriorityComparator();
+
     private class SearchNode implements Comparable<SearchNode> {
-        private static final int notMemoized = -1;
+        private static final int NOT_MEMOIZED = -1;
+        private static final boolean MANHATTAN_PRIORITY = true;
 
         private final Board board;
         private final int move;
         private final SearchNode previous;
 
-        private int boardPriority = notMemoized;
+        private int boardPriority = NOT_MEMOIZED;
 
         SearchNode(Board board, int move, SearchNode previous) {
             this.board = board;
@@ -45,14 +58,32 @@ public class Solver {
         }
 
         public int compareTo(SearchNode that) {
-            if (that == null) throw new NullPointerException();
+            return SearchNodeComparator.compare(this, that);
+        }
 
-            return priority() - that.priority();
+        public String toString() {
+            return "priority = "
+                    + priority()
+                    + System.lineSeparator()
+                    + "move = "
+                    + move
+                    + System.lineSeparator()
+                    + boardPriorityName()
+                    + " = "
+                    + boardPriority()
+                    + System.lineSeparator()
+                    + board;
+        }
+
+        private String boardPriorityName() {
+            return MANHATTAN_PRIORITY ? "manhattan" : "hamming";
         }
 
         private int boardPriority() {
-            if (boardPriority == notMemoized)
-                boardPriority = board.manhattan();
+            if (boardPriority == NOT_MEMOIZED)
+                boardPriority = MANHATTAN_PRIORITY
+                                ? board.manhattan()
+                                : board.hamming();
 
             return boardPriority;
         }
@@ -60,19 +91,22 @@ public class Solver {
 
     public Solver(Board initial) {
         if (initial == null) throw new IllegalArgumentException();
+        if (TRACE) StdOut.println("TRACE");
 
-        // this.initial = initial;
-        queue = new MinPQ<>();
+        final MinPQ<SearchNode> queue = new MinPQ<>();
         queue.insert(new SearchNode(initial, 0, null));
         goalNode = aStar(queue);
     }
 
     private SearchNode aStar(MinPQ<SearchNode> queue) {
+        int step = 0;
+
         while (!queue.isEmpty()) {
+            if (TRACE) trace(step++, queue);
+
             SearchNode current = queue.delMin();
 
-            if (current.board.isGoal())
-                return current;
+            if (current.board.isGoal()) return current;
 
             for (SearchNode neighbor : current.neighbors())
                 if (current.previous == null || !neighbor.board.equals(current.previous.board))
@@ -128,5 +162,60 @@ public class Solver {
             for (Board board : solver.solution())
                 StdOut.println(board);
         }
+    }
+
+
+    private static void trace(int step, MinPQ<SearchNode> queue) {
+        StringBuilder sb = new StringBuilder().append("Step ").append(step).append(":\t");
+        ArrayList<SearchNode> list = new ArrayList<>();
+        queue.iterator().forEachRemaining(list::add);
+        list.sort(SearchNodeComparator);
+
+        int n = list.get(0).board
+                .toString()
+                .split(System.lineSeparator())[1]
+                .split(" ")
+                .length;
+
+        // todo dynam dimensions table
+        // char[] tabsArray = new char[n];
+        // if (n < 2)
+        //     tabsArray = new char[] { '\t', '\t' };
+        // else
+        // for (int i = 0; i < n; i++)
+        // tabsArray[i] = '\t';
+        // String tabs = new String(tabsArray);
+        String textTabs = "\t";
+
+        for (SearchNode node : list)
+            sb.append("priority = ").append(node.priority()).append(textTabs);
+        sb.append(System.lineSeparator()).append("\t\t");
+
+        for (SearchNode node : list)
+            sb.append("move = ").append(node.move).append(textTabs + "\t");
+        sb.append(System.lineSeparator()).append("\t\t");
+
+        for (SearchNode node : list)
+            sb.append(node.boardPriorityName() + " = ").append(node.boardPriority())
+              .append(textTabs);
+        sb.append(System.lineSeparator()).append("\t\t");
+
+        for (int i = 0; i < n; i++) {
+            for (SearchNode node : list) {
+                sb.append(
+                        node.board
+                                .toString()
+                                .split(System.lineSeparator())[i]
+                ).append(textTabs);
+
+                if (i == 0)
+                    sb.append("\t\t\t");
+                else
+                    sb.append("\t\t");
+            }
+            sb.append(System.lineSeparator()).append("\t\t");
+        }
+
+        StdOut.println(sb);
     }
 }
