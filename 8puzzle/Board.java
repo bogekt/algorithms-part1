@@ -1,7 +1,7 @@
 /* *****************************************************************************
- *  Name:
- *  Date:
- *  Description:
+ *  Name: Eugene Borys
+ *  Date: 14/01/2020
+ *  Description: Represents 8 puzzle game board
  **************************************************************************** */
 
 import edu.princeton.cs.algs4.Bag;
@@ -14,6 +14,8 @@ public class Board {
     private final int n2;
     private final int n;
     private final char[] singleDimensionTiles;
+    private int twinLeftIndex;
+    private int twinRightIndex;
 
     // create a board from an n-by-n array of tiles,
     // where tiles[row][col] = tile at (row, col)
@@ -26,15 +28,19 @@ public class Board {
 
         for (int i = 0; i < tiles.length; i++)
             for (int j = 0; j < tiles[i].length; j++)
-                if (tiles[i][j] > 127) throw new IllegalArgumentException();
-                else singleDimensionTiles[toSingleDimension(i, j, n)] = (char) tiles[i][j];
+                singleDimensionTiles[toSingleDimension(i, j, n)] = (char) tiles[i][j];
+
+        setupTwinIndexes();
     }
 
     // copy constructor
-    public Board(char[] singleDimensionTiles, int n, int n2) {
+    private Board(char[] singleDimensionTiles, int n, int n2) {
         this.n = n;
         this.n2 = n2;
         this.singleDimensionTiles = singleDimensionTiles.clone();
+
+        setupTwinIndexes();
+
         assert n * n == n2;
         assert singleDimensionTiles.length == n2;
     }
@@ -132,7 +138,7 @@ public class Board {
     }
 
     private enum Neighbor {
-        LEFT, RIGHT, TOP, BOTTOM;
+        LEFT, RIGHT, TOP, BOTTOM
     }
 
     private Board neighbor(
@@ -168,18 +174,18 @@ public class Board {
 
     // a board that is obtained by exchanging any pair of tiles
     public Board twin() {
-        int leftIndex, rightIndex;
-        int blankTileIndex = blankTileIndex();
-
-        do {
-            leftIndex = StdRandom.uniform(n2);
-            rightIndex = leftIndex == n2 - 1 ? 0 : leftIndex + 1;
-        } while (leftIndex != blankTileIndex && rightIndex != blankTileIndex);
-
         char[] twinSingleDimensionTiles = singleDimensionTiles.clone();
-        swap(twinSingleDimensionTiles, leftIndex, rightIndex);
+        swap(twinSingleDimensionTiles, twinLeftIndex, twinRightIndex);
 
         return new Board(twinSingleDimensionTiles, n, n2);
+    }
+
+    private void setupTwinIndexes() {
+        int blankTileIndex = blankTileIndex();
+        do {
+            twinLeftIndex = StdRandom.uniform(n2);
+            twinRightIndex = twinLeftIndex == n2 - 1 ? 0 : twinLeftIndex + 1;
+        } while (twinLeftIndex == blankTileIndex || twinRightIndex == blankTileIndex);
     }
 
     private int blankTileIndex() {
@@ -464,19 +470,11 @@ public class Board {
                         })
         );
         // twins
-        boolean differentTwins = false;
+        boolean sameTwins = true;
         int count = 0;
-        while (!differentTwins && count++ < 2)
-            differentTwins = !b.twin().equals(b.twin());
-        assert differentTwins;
-        assert differentPositions(
-                b.singleDimensionTiles,
-                b.twin().singleDimensionTiles
-        ) == 2;
-        assert differentPositions(
-                b.singleDimensionTiles,
-                b.twin().singleDimensionTiles
-        ) == 2;
+        while (sameTwins && count++ < 3)
+            sameTwins = b.twin().equals(b.twin());
+        assert sameTwins;
         assert differentPositions(
                 b.singleDimensionTiles,
                 b.twin().singleDimensionTiles

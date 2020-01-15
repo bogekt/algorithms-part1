@@ -1,22 +1,27 @@
 /* *****************************************************************************
- *  Name:
- *  Date:
- *  Description:
+ *  Name: Eugene Borys
+ *  Date: 14/01/2020
+ *  Description: Solver of 8 puzzle game using A* algorithm and Board api
  **************************************************************************** */
 
 import edu.princeton.cs.algs4.Bag;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.MinPQ;
+import edu.princeton.cs.algs4.Stack;
 import edu.princeton.cs.algs4.StdOut;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 
 public class Solver {
-    private static final boolean TRACE = true;
-    private SearchNode goalNode;
+    private static final boolean TRACE = false;
+    private static final SearchNodePriorityComparator SEARCH_NODE_PRIORITY_COMPARATOR
+            = new SearchNodePriorityComparator();
 
-    private final static class SearchNodePriorityComparator implements Comparator<SearchNode> {
+    private SearchNode goalNode;
+    private SearchNode twinGoalNode;
+
+    private static final class SearchNodePriorityComparator implements Comparator<SearchNode> {
         @Override
         public int compare(SearchNode o1, SearchNode o2) {
             if (o1 == null || o2 == null) throw new NullPointerException();
@@ -24,9 +29,6 @@ public class Solver {
             return o1.priority() - o2.priority();
         }
     }
-
-    private static final SearchNodePriorityComparator SearchNodeComparator
-            = new SearchNodePriorityComparator();
 
     private class SearchNode implements Comparable<SearchNode> {
         private static final int NOT_MEMOIZED = -1;
@@ -58,7 +60,7 @@ public class Solver {
         }
 
         public int compareTo(SearchNode that) {
-            return SearchNodeComparator.compare(this, that);
+            return SEARCH_NODE_PRIORITY_COMPARATOR.compare(this, that);
         }
 
         public String toString() {
@@ -94,32 +96,43 @@ public class Solver {
         if (TRACE) StdOut.println("TRACE");
 
         final MinPQ<SearchNode> queue = new MinPQ<>();
+        final MinPQ<SearchNode> twinQueue = new MinPQ<>();
         queue.insert(new SearchNode(initial, 0, null));
-        goalNode = aStar(queue);
-    }
+        twinQueue.insert(new SearchNode(initial.twin(), 0, null));
 
-    private SearchNode aStar(MinPQ<SearchNode> queue) {
         int step = 0;
 
-        while (!queue.isEmpty()) {
-            if (TRACE) trace(step++, queue);
+        while (!queue.isEmpty() && goalNode == null && twinGoalNode == null) {
+            if (TRACE) {
+                StdOut.println("Main queue");
+                trace(step, queue);
 
-            SearchNode current = queue.delMin();
+                StdOut.println("Twin queue");
+                trace(step, twinQueue);
+            }
 
-            if (current.board.isGoal()) return current;
+            goalNode = aStarIteration(queue);
+            twinGoalNode = aStarIteration(twinQueue);
 
-            for (SearchNode neighbor : current.neighbors())
-                if (current.previous == null || !neighbor.board.equals(current.previous.board))
-                    queue.insert(neighbor);
+            step++;
         }
+    }
+
+    private SearchNode aStarIteration(MinPQ<SearchNode> queue) {
+        SearchNode current = queue.delMin();
+
+        if (current.board.isGoal()) return current;
+
+        for (SearchNode neighbor : current.neighbors())
+            if (current.previous == null || !neighbor.board.equals(current.previous.board))
+                queue.insert(neighbor);
 
         return null;
     }
 
     // is the initial board solvable? (see below)
     public boolean isSolvable() {
-        // todo
-        return true;
+        return goalNode != null;
     }
 
     // min number of moves to solve initial board
@@ -129,11 +142,11 @@ public class Solver {
 
     // sequence of boards in a shortest solution
     public Iterable<Board> solution() {
-        ArrayList<Board> boards = new ArrayList<>();
+        Stack<Board> boards = new Stack<>();
 
         SearchNode node = goalNode;
         while (node != null) {
-            boards.add(node.board);
+            boards.push(node.board);
             node = node.previous;
         }
 
@@ -169,7 +182,7 @@ public class Solver {
         StringBuilder sb = new StringBuilder().append("Step ").append(step).append(":\t");
         ArrayList<SearchNode> list = new ArrayList<>();
         queue.iterator().forEachRemaining(list::add);
-        list.sort(SearchNodeComparator);
+        list.sort(SEARCH_NODE_PRIORITY_COMPARATOR);
 
         int n = list.get(0).board
                 .toString()
@@ -177,14 +190,6 @@ public class Solver {
                 .split(" ")
                 .length;
 
-        // todo dynam dimensions table
-        // char[] tabsArray = new char[n];
-        // if (n < 2)
-        //     tabsArray = new char[] { '\t', '\t' };
-        // else
-        // for (int i = 0; i < n; i++)
-        // tabsArray[i] = '\t';
-        // String tabs = new String(tabsArray);
         String textTabs = "\t";
 
         for (SearchNode node : list)
