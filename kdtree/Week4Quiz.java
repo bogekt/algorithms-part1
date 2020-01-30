@@ -32,7 +32,28 @@ public class Week4Quiz {
         bst3.put("E", 5);
         StdOut.println(String.join(" ", bst.keys()));
         bst3.inorderTraversalWithConstantExtraSpace();
-        //StdOut.println(String.join(" ", bst3.inorderTraversalWithConstantExtraSpace()));
+
+        StdOut.println();
+
+        bst = new BST<>();
+        bst.put("H", 0);
+        bst.put("C", 0);
+        bst.put("S", 0);
+        bst.put("A", 0);
+        bst.put("E", 0);
+        bst.put("R", 0);
+        bst.put("X", 0);
+
+        bst3 = new BST3<>();
+        bst3.put("H", 0);
+        bst3.put("C", 0);
+        bst3.put("S", 0);
+        bst3.put("A", 0);
+        bst3.put("E", 0);
+        bst3.put("R", 0);
+        bst3.put("X", 0);
+        StdOut.println(String.join(" ", bst.keys()));
+        bst3.inorderTraversalWithConstantExtraSpace();
         // assert String.join(" ", bst.keys()).equals(
         //         String.join(" ", bst3.keys()));
     }
