@@ -501,11 +501,8 @@ public class BST3<Key extends Comparable<Key>, Value> {
     }
 
     private void inorderTraversalWithConstantExtraSpace(Node node) {
-        if (node.left == null) StdOut.print(node.key + " ");
-        else {
-            inorderTraversalWithConstantExtraSpace(node.left);
-            StdOut.print(node.key + " ");
-        }
+        if (node.left != null) inorderTraversalWithConstantExtraSpace(node.left);
+        StdOut.print(node.key + " ");
         if (node.right != null) inorderTraversalWithConstantExtraSpace(node.right);
     }
 
