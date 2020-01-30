@@ -33,6 +33,7 @@ import edu.princeton.cs.algs4.SequentialSearchST;
 import edu.princeton.cs.algs4.StdIn;
 import edu.princeton.cs.algs4.StdOut;
 
+import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 
@@ -506,28 +507,31 @@ public class BST3<Key extends Comparable<Key>, Value> {
         if (node.right != null) inorderTraversalWithConstantExtraSpace(node.right);
     }
 
-    // public Iterable<Key> inorderTraversalWithConstantExtraSpace() {
-    //     Node node = root;
-    //     Node prev = null;
-    //     while (node.left != null) {
-    //         prev = node;
-    //         node = node.left;
-    //     }
-    //
-    //     return new Iterable<Key>() {
-    //         public Iterator<Key> iterator() {
-    //             return new Iterator<Key>() {
-    //                 public boolean hasNext() {
-    //                     return false;
-    //                 }
-    //
-    //                 public Key next() {
-    //                     return null;
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+
+    public Iterable<Key> keysWithConstantExtraSpace() {
+        final Object[] a = new Object[] { min(root) };
+        final java.util.function.Function<Object[], Node> getNode = (array)
+                -> (Node) array[0];
+        final java.util.function.BiConsumer<Object[], Node> setNode = (array, newNode)
+                -> array[0] = newNode;
+
+        return () -> new Iterator<Key>() {
+            public boolean hasNext() {
+                return getNode.apply(a) != null;
+            }
+
+            public Key next() {
+                Node node = getNode.apply(a);
+
+                delete(node.key);
+                Node parent = ceiling(root, node.key);
+                put(node.key, node.val);
+                setNode.accept(a, parent);
+
+                return node.key;
+            }
+        };
+    }
 
     /*************************************************************************
      *  Check integrity of BST data structure.

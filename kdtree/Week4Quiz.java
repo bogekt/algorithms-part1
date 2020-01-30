@@ -31,6 +31,7 @@ public class Week4Quiz {
         bst3.put("F", 6);
         bst3.put("E", 5);
         StdOut.println(String.join(" ", bst.keys()));
+        // StdOut.println(String.join(" ", bst3.keysWithConstantExtraSpace()));
         bst3.inorderTraversalWithConstantExtraSpace();
 
         StdOut.println();
@@ -53,6 +54,7 @@ public class Week4Quiz {
         bst3.put("R", 0);
         bst3.put("X", 0);
         StdOut.println(String.join(" ", bst.keys()));
+        StdOut.println(String.join(" ", bst3.keysWithConstantExtraSpace()));
         bst3.inorderTraversalWithConstantExtraSpace();
         // assert String.join(" ", bst.keys()).equals(
         //         String.join(" ", bst3.keys()));
