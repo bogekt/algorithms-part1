@@ -507,31 +507,35 @@ public class BST3<Key extends Comparable<Key>, Value> {
         if (node.right != null) inorderTraversalWithConstantExtraSpace(node.right);
     }
 
-
     public Iterable<Key> keysWithConstantExtraSpace() {
-        final Object[] a = new Object[] { min(root) };
-        final java.util.function.Function<Object[], Node> getNode = (array)
-                -> (Node) array[0];
-        final java.util.function.BiConsumer<Object[], Node> setNode = (array, newNode)
-                -> array[0] = newNode;
-
-        return () -> new Iterator<Key>() {
-            public boolean hasNext() {
-                return getNode.apply(a) != null;
-            }
-
-            public Key next() {
-                Node node = getNode.apply(a);
-
-                delete(node.key);
-                Node parent = ceiling(root, node.key);
-                put(node.key, node.val);
-                setNode.accept(a, parent);
-
-                return node.key;
-            }
-        };
+        return () -> new BST3Iterator(this);
     }
+
+    private class BST3Iterator implements Iterator<Key> {
+        private final BST3<Key, Value> bst3;
+        private Node node;
+
+        public BST3Iterator(BST3<Key, Value> bst3) {
+            this.bst3 = bst3;
+            node = bst3.min(root);
+        }
+
+        public boolean hasNext() {
+            return node != null;
+        }
+
+        public Key next() {
+            Key key = node.key;
+
+            bst3.delete(node.key);
+            Node next = bst3.ceiling(root, node.key);
+            bst3.put(node.key, node.val);
+            node = next;
+
+            return key;
+        }
+    }
+
 
     /*************************************************************************
      *  Check integrity of BST data structure.

@@ -8,8 +8,14 @@ import edu.princeton.cs.algs4.StdOut;
 
 public class Week4Quiz {
     public static void main(String[] args) {
+        StdOut.println();
+        StdOut.println("test1");
+        StdOut.println();
         test1();
         // test2 BST.isBST
+        StdOut.println();
+        StdOut.println("test3");
+        StdOut.println();
         test3();
     }
 
@@ -31,7 +37,8 @@ public class Week4Quiz {
         bst3.put("F", 6);
         bst3.put("E", 5);
         StdOut.println(String.join(" ", bst.keys()));
-        // StdOut.println(String.join(" ", bst3.keysWithConstantExtraSpace()));
+        assert String.join(" ", bst.keys()).equals(
+                String.join(" ", bst3.keysWithConstantExtraSpace()));
         bst3.inorderTraversalWithConstantExtraSpace();
 
         StdOut.println();
@@ -56,8 +63,8 @@ public class Week4Quiz {
         StdOut.println(String.join(" ", bst.keys()));
         StdOut.println(String.join(" ", bst3.keysWithConstantExtraSpace()));
         bst3.inorderTraversalWithConstantExtraSpace();
-        // assert String.join(" ", bst.keys()).equals(
-        //         String.join(" ", bst3.keys()));
+        assert String.join(" ", bst.keys()).equals(
+                String.join(" ", bst3.keysWithConstantExtraSpace()));
     }
 
     private static void test1() {
@@ -68,8 +75,6 @@ public class Week4Quiz {
 
         System.out.println(a == b);
         System.out.println(x.equals(y));
-
-        System.out.println();
 
         a = Double.NaN;
         b = Double.NaN;
