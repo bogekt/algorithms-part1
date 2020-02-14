@@ -20,51 +20,32 @@ public class Week4Quiz {
     }
 
     private static void test3() {
-        BST<String, Integer> bst = new BST<>();
-        bst.put("D", 4);
-        bst.put("C", 3);
-        bst.put("B", 2);
-        bst.put("A", 1);
-        bst.put("G", 7);
-        bst.put("F", 6);
-        bst.put("E", 5);
-        BST3<String, Integer> bst3 = new BST3<>();
-        bst3.put("D", 4);
-        bst3.put("C", 3);
-        bst3.put("B", 2);
-        bst3.put("A", 1);
-        bst3.put("G", 7);
-        bst3.put("F", 6);
-        bst3.put("E", 5);
-        StdOut.println(String.join(" ", bst.keys()));
-        assert String.join(" ", bst.keys()).equals(
-                String.join(" ", bst3.keysWithConstantExtraSpace()));
-        bst3.inorderTraversalWithConstantExtraSpace();
+        for (String[] sArray : new String[][] {
+                { "D", "C", "B", "A", "G", "F", "E" },
+                { "H", "C", "S", "A", "E", "R", "X" },
+                }
+        ) {
+            BST<String, Integer> bst = new BST<>();
+            BST3<String, Integer> bst3 = new BST3<>();
+            BST31<String, Integer> bst31 = new BST31<>();
 
-        StdOut.println();
+            for (String s : sArray) {
+                bst.put(s, s.codePointAt(0));
+                bst3.put(s, s.codePointAt(0));
+                bst31.put(s, s.codePointAt(0));
+            }
 
-        bst = new BST<>();
-        bst.put("H", 0);
-        bst.put("C", 0);
-        bst.put("S", 0);
-        bst.put("A", 0);
-        bst.put("E", 0);
-        bst.put("R", 0);
-        bst.put("X", 0);
+            String expect = String.join(" ", bst.keys());
+            StdOut.println(expect);
+            bst3.inorderTraversalWithConstantExtraSpace();
+            StdOut.println();
+            StdOut.println(String.join(" ", bst3.keysWithConstantExtraSpace()));
+            StdOut.println(String.join(" ", bst31.keysWithConstantExtraSpace()));
+            assert expect.equals(String.join(" ", bst3.keysWithConstantExtraSpace()));
+            assert expect.equals(String.join(" ", bst31.keysWithConstantExtraSpace()));
 
-        bst3 = new BST3<>();
-        bst3.put("H", 0);
-        bst3.put("C", 0);
-        bst3.put("S", 0);
-        bst3.put("A", 0);
-        bst3.put("E", 0);
-        bst3.put("R", 0);
-        bst3.put("X", 0);
-        StdOut.println(String.join(" ", bst.keys()));
-        StdOut.println(String.join(" ", bst3.keysWithConstantExtraSpace()));
-        bst3.inorderTraversalWithConstantExtraSpace();
-        assert String.join(" ", bst.keys()).equals(
-                String.join(" ", bst3.keysWithConstantExtraSpace()));
+            StdOut.println();
+        }
     }
 
     private static void test1() {
