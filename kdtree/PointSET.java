@@ -8,9 +8,6 @@ import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.SET;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedList;
 
 public class PointSET {
@@ -66,42 +63,40 @@ public class PointSET {
         if (p == null) throw new IllegalArgumentException();
         if (points.isEmpty()) return null;
 
-        ArrayList<Point2D> nearestPoints = new ArrayList<>(points.size());
-        for (Point2D x : points)
-            nearestPoints.add(p);
+        Point2D min = null;
 
-        Comparator<Point2D> c = new PointDistanceToOrder(p);
-        nearestPoints.sort(c);
-        int i = Collections.binarySearch(nearestPoints, p, c);
-
-        Point2D floor = i - 1 >= 0 ? nearestPoints.get(i - 1) : null;
-        Point2D celling = i + 1 < nearestPoints.size() ? nearestPoints.get(i + 1) : null;
-
-        if (floor == null) return celling;
-        else if (celling == null) return floor;
-        else return floor.distanceSquaredTo(p) < celling.distanceSquaredTo(p)
-                    ? floor
-                    : celling;
-    }
-
-    // compare points according to their distance to this point
-    private class PointDistanceToOrder implements Comparator<Point2D> {
-        private final Point2D point;
-
-        public PointDistanceToOrder(Point2D point) {
-            this.point = point;
+        for (Point2D q : points) {
+            if (q.equals(p)) continue;
+            if (min != null && p.distanceSquaredTo(min) <= p.distanceSquaredTo(q)) continue;
+            min = q;
         }
 
-        public int compare(Point2D p, Point2D q) {
-            double dist1 = point.distanceSquaredTo(p);
-            double dist2 = point.distanceSquaredTo(q);
-            if (dist1 < dist2) return -1;
-            else if (dist1 > dist2) return +1;
-            else return 0;
-        }
+        return min;
     }
 
     // unit testing of the methods (optional)
     public static void main(String[] args) {
+        PointSET pointSET = new PointSET();
+
+        for (Point2D p : new Point2D[] {
+                /*A*/ new Point2D(0.5, 0.0),
+                /*B*/ new Point2D(1.0, 0.5),
+                /*C*/ new Point2D(0.5, 0.0),
+                /*D*/ new Point2D(0.25, 0.75),
+                /*E*/ new Point2D(0.75, 0.0),
+                /*F*/ new Point2D(0.25, 1.0),
+                /*G*/ new Point2D(1.0, 0.0),
+                /*H*/ new Point2D(0.5, 0.25),
+                /*I*/ new Point2D(0.5, 0.5),
+                /*J*/ new Point2D(0.0, 0.5),
+                })
+            pointSET.insert(p);
+
+        Point2D expected = new Point2D(0.5, 0.5);
+        Point2D query = new Point2D(0.5, 0.75);
+        Point2D nearest = pointSET.nearest(query);
+
+        assert nearest.equals(expected);
+        assert nearest.distanceSquaredTo(query) == 0.0625;
     }
 }
