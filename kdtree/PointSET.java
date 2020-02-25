@@ -33,11 +33,13 @@ public class PointSET {
 
     // add the point to the set (if it is not already in the set)
     public void insert(Point2D p) {
+        if (p == null) throw new IllegalArgumentException();
         points.add(p);
     }
 
     // does the set contain point p?
     public boolean contains(Point2D p) {
+        if (p == null) throw new IllegalArgumentException();
         return points.contains(p);
     }
 
@@ -49,6 +51,8 @@ public class PointSET {
 
     // all points that are inside the rectangle (or on the boundary)
     public Iterable<Point2D> range(RectHV rect) {
+        if (rect == null) throw new IllegalArgumentException();
+
         LinkedList<Point2D> inside = new LinkedList<>();
 
         for (Point2D p : points)
@@ -59,31 +63,32 @@ public class PointSET {
 
     // a nearest neighbor in the set to point p; null if the set is empty
     public Point2D nearest(Point2D p) {
+        if (p == null) throw new IllegalArgumentException();
         if (points.isEmpty()) return null;
 
         ArrayList<Point2D> nearestPoints = new ArrayList<>(points.size());
         for (Point2D x : points)
             nearestPoints.add(p);
 
-        Comparator<Point2D> c = new DistanceToOrder(p);
+        Comparator<Point2D> c = new PointDistanceToOrder(p);
         nearestPoints.sort(c);
         int i = Collections.binarySearch(nearestPoints, p, c);
 
         Point2D floor = i - 1 >= 0 ? nearestPoints.get(i - 1) : null;
         Point2D celling = i + 1 < nearestPoints.size() ? nearestPoints.get(i + 1) : null;
+
         if (floor == null) return celling;
         else if (celling == null) return floor;
-
-        return floor.distanceSquaredTo(p) < celling.distanceSquaredTo(p)
-               ? floor
-               : celling;
+        else return floor.distanceSquaredTo(p) < celling.distanceSquaredTo(p)
+                    ? floor
+                    : celling;
     }
 
     // compare points according to their distance to this point
-    private class DistanceToOrder implements Comparator<Point2D> {
+    private class PointDistanceToOrder implements Comparator<Point2D> {
         private final Point2D point;
 
-        public DistanceToOrder(Point2D point) {
+        public PointDistanceToOrder(Point2D point) {
             this.point = point;
         }
 
