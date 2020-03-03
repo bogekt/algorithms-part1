@@ -6,6 +6,7 @@
 
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
+import edu.princeton.cs.algs4.StdRandom;
 
 import java.util.Iterator;
 
@@ -143,6 +144,36 @@ public class KdTree {
     // unit testing of the methods (optional)
     public static void main(String[] args) {
         // contains
+        testContains(
+                new Point2D[] {
+                        /* A */  new Point2D(1.0, 0.9375),
+                        /* B */  new Point2D(0.1875, 0.1875),
+                        /* C */  new Point2D(0.6875, 0.6875),
+                        /* D */  new Point2D(0.0625, 0.0625),
+                        /* E */  new Point2D(0.0625, 0.9375),
+                        /* F */  new Point2D(0.0625, 0.875),
+                        /* G */  new Point2D(0.125, 0.8125),
+                        /* H */  new Point2D(0.1875, 0.0),
+                        /* I */  new Point2D(0.3125, 0.1875),
+                        /* J */  new Point2D(0.1875, 0.4375),
+                        /* K */  new Point2D(0.9375, 0.8125),
+                        /* L */  new Point2D(0.9375, 0.875),
+                        /* M */  new Point2D(0.3125, 0.0625),
+                        /* N */  new Point2D(1.0, 0.9375),
+                        /* O */  new Point2D(0.5625, 0.6875),
+                        /* P */  new Point2D(0.4375, 0.9375),
+                        /* Q */  new Point2D(0.125, 0.625),
+                        /* R */  new Point2D(0.9375, 0.9375),
+                        /* S */  new Point2D(0.125, 0.1875),
+                        /* T */  new Point2D(0.0, 0.5625),
+                        },
+                new Point2D[] {
+                        new Point2D(0.6875, 0.7875),
+                        new Point2D(0.1, 0.1),
+                        new Point2D(1.1, 1.1),
+                        new Point2D(-0.1, -0.1),
+                        }
+        );
 
         // nearest
         testNearest(
@@ -208,6 +239,22 @@ public class KdTree {
                 new Point2D(0.3125, 0.1875),
                 0
         );
+    }
+
+    private static void testContains(Point2D[] insert, Point2D[] notContains) {
+        KdTree kdTree = new KdTree();
+
+        for (Point2D p : insert)
+            kdTree.insert(p);
+
+        Point2D[] contains = insert.clone();
+        StdRandom.shuffle(contains);
+
+        for (Point2D p : contains)
+            assert kdTree.contains(p);
+
+        for (Point2D p : notContains)
+            assert !kdTree.contains(p);
     }
 
     private static void testNearest(
