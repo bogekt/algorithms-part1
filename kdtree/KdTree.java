@@ -5,14 +5,18 @@
  **************************************************************************** */
 
 import edu.princeton.cs.algs4.Point2D;
+import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.RectHV;
+import edu.princeton.cs.algs4.StdDraw;
+import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.StdRandom;
 
-import java.util.Iterator;
+import java.awt.Color;
 
 public class KdTree {
     private static final int vertical = 1;
     private static final int horizontal = -1;
+    private static final RectHV rootRect = new RectHV(0, 0, 1, 1);
 
     private int size;
     private Node root;
@@ -23,8 +27,9 @@ public class KdTree {
         private Node lb;        // the left/bottom subtree
         private Node rt;        // the right/top subtree
 
-        public Node(Point2D p) {
+        public Node(Point2D p, RectHV rect) {
             this.p = p;
+            this.rect = rect;
         }
     }
 
@@ -46,17 +51,35 @@ public class KdTree {
 
     // add the point to the set (if it is not already in the set)
     public void insert(Point2D p) {
-        root = put(root, p, vertical);
-        size++;
+        root = put(root, p, vertical, rootRect);
     }
 
-    private Node put(Node x, Point2D p, int line) {
-        if (x == null) return new Node(p);
-        int compare = compare(p, x.p, line);
-        if (compare < 0) x.lb = put(x.lb, p, -1 * line);
-        else if (compare > 0) x.rt = put(x.rt, p, -1 * line);
-        else x.p = p;
+    private Node put(Node x, Point2D p, int line, RectHV rect) {
+        if (x == null) {
+            size++;
+            return new Node(p, rect);
+        }
+
+        int compare = compare(p, x.p, -1 * line);
+        RectHV[] rectHVs = split(x.rect, x.p, line);
+        if (compare < 0) x.lb = put(x.lb, p, -1 * line, rectHVs[0]);
+        else x.rt = put(x.rt, p, -1 * line, rectHVs[1]);
+
         return x;
+    }
+
+    private RectHV[] split(RectHV rect, Point2D p, int line) {
+        if (line == vertical)
+            return new RectHV[] {
+                    new RectHV(rect.xmin(), rect.ymin(), p.x(), rect.ymax()), // left
+                    new RectHV(p.x(), rect.ymin(), rect.xmax(), rect.ymax()), // right
+            };
+        if (line == horizontal)
+            return new RectHV[] {
+                    new RectHV(rect.xmin(), rect.ymin(), rect.xmax(), p.y()), // bottom
+                    new RectHV(rect.xmin(), p.y(), rect.xmax(), rect.ymax()), // top
+            };
+        throw new IllegalArgumentException();
     }
 
     // does the set contain point p?
@@ -66,10 +89,10 @@ public class KdTree {
 
     private Node get(Node x, Point2D p, int line) {
         if (x == null) return null;
-        int compare = compare(p, x.p, line);
+        int compare = compare(p, x.p, -1 * line);
         if (compare < 0) return get(x.lb, p, -1 * line);
         else if (compare > 0) return get(x.rt, p, -1 * line);
-        else return x;
+        return p.compareTo(x.p) == 0 ? x : get(x.rt, p, -1 * line);
     }
 
     private int compare(Point2D p, Point2D q, int line) {
@@ -80,56 +103,70 @@ public class KdTree {
 
     // draw all points to standard draw
     public void draw() {
-        for (Point2D p : iterator())
-            p.draw();
-    }
+        int level = 0;
+        while (true) {
+            Queue<Node> nodes = new Queue<>();
+            levelNodes(nodes, root, 0, level);
 
-    private Iterable<Point2D> iterator() {
-        return () -> new KdTreeIterator(root);
-    }
+            StdOut.println();
+            StdOut.printf("Level %d nodes:%d", level, nodes.size());
+            StdOut.println();
 
-    // Morris, Joseph M. (1979). "Traversing binary trees simply and cheaply".
-    // https://en.wikipedia.org/wiki/Tree_traversal#Morris_in-order_traversal_using_threading
-    private class KdTreeIterator implements Iterator<Point2D> {
-        private Node node;
+            if (nodes.size() == 0) break;
 
-        public KdTreeIterator(Node root) {
-            node = root;
-        }
+            int line = level % 2 == 0 ? vertical : horizontal;
+            Color rectColor = line == vertical ? StdDraw.RED : StdDraw.BLUE;
 
-        public boolean hasNext() {
-            return node != null;
-        }
+            for (Node node : nodes) {
+                StdOut.printf(
+                        "Point %s line %s Rect %s",
+                        node.p,
+                        line == vertical ? "vertical" : "horizontal",
+                        node.rect
+                );
+                StdOut.println();
 
-        public Point2D next() {
-            Point2D key = null;
+                StdDraw.setPenColor(StdDraw.BLACK);
+                StdDraw.setPenRadius(0.01);
+                node.p.draw();
 
-            while (key == null) {
-                if (node.lb == null) {
-                    key = node.p;
-                    node = node.rt;
-                }
-                else {
-                    Node next = node.lb;
+                StdDraw.setPenColor(rectColor);
+                StdDraw.setPenRadius();
+                RectHV[] rects = split(node.rect, node.p, line);
+                StdOut.printf(
+                        "Rect %s %s Rect %s %s",
+                        line == vertical ? "left" : "bottom",
+                        rects[0],
+                        line == vertical ? "right" : "top",
+                        rects[1]
+                );
+                StdOut.println();
+                rects[0].draw();
+                rects[1].draw();
 
-                    while (next.rt != null && next.rt != node)
-                        next = next.rt;
-
-                    if (next.rt == null) {
-                        next.rt = node;
-                        node = node.lb;
-                    }
-                    else {
-                        key = node.p;
-                        next.rt = null;
-                        node = node.rt;
-                    }
-                }
+                RectHV nodeRect1 = node.lb != null ? node.lb.rect : null;
+                RectHV nodeRect2 = node.rt != null ? node.rt.rect : null;
+                StdOut.printf(
+                        "Node Rect %s %s Node Rect %s %s",
+                        line == vertical ? "left" : "bottom",
+                        nodeRect1 == null ? null : nodeRect1,
+                        line == vertical ? "right" : "top",
+                        nodeRect2 == null ? null : nodeRect2
+                );
+                StdOut.println();
             }
 
-            return key;
+            level++;
         }
     }
+
+    private void levelNodes(Queue<Node> nodes, Node x, int current, int level) {
+        if (current > level || x == null) return;
+        if (current == level) nodes.enqueue(x);
+        levelNodes(nodes, x.lb, current + 1, level);
+        levelNodes(nodes, x.rt, current + 1, level);
+    }
+
 
     // all points that are inside the rectangle (or on the boundary)
     public Iterable<Point2D> range(RectHV rect) {
@@ -143,6 +180,16 @@ public class KdTree {
 
     // unit testing of the methods (optional)
     public static void main(String[] args) {
+        // insert
+        KdTree kdTree = new KdTree();
+        kdTree.insert(new Point2D(0.5, 0.5));
+        kdTree.insert(new Point2D(0.75, 0.5));
+        kdTree.insert(new Point2D(0.75, 0.75));
+        kdTree.insert(new Point2D(0.625, 0.75));
+        kdTree.insert(new Point2D(0.625, 0.625));
+        RectHV rect = kdTree.get(kdTree.root, new Point2D(0.5, 0.5), horizontal).rect;
+        assert rect.xmin() == 0 && rect.xmax() == 1 && rect.ymin() == 0 && rect.ymax() == 1;
+
         // contains
         testContains(
                 new Point2D[] {
@@ -246,15 +293,22 @@ public class KdTree {
 
         for (Point2D p : insert)
             kdTree.insert(p);
+        assert kdTree.size() == insert.length;
 
         Point2D[] contains = insert.clone();
         StdRandom.shuffle(contains);
 
         for (Point2D p : contains)
-            assert kdTree.contains(p);
+            if (!kdTree.contains(p)) {
+                StdOut.println(p);
+                assert false;
+            }
 
         for (Point2D p : notContains)
-            assert !kdTree.contains(p);
+            if (kdTree.contains(p)) {
+                StdOut.println(p);
+                assert false;
+            }
     }
 
     private static void testNearest(
