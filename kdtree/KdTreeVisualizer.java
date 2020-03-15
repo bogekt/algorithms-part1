@@ -33,7 +33,7 @@ public class KdTreeVisualizer {
                     StdDraw.show();
                 }
             }
-            StdDraw.pause(20);
+            StdDraw.pause(100);
         }
 
     }

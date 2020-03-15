@@ -132,17 +132,7 @@ public class KdTree {
 
                 StdDraw.setPenColor(rectColor);
                 StdDraw.setPenRadius();
-                RectHV[] rects = split(node.rect, node.p, line);
-                StdOut.printf(
-                        "Rect %s %s Rect %s %s",
-                        line == vertical ? "left" : "bottom",
-                        rects[0],
-                        line == vertical ? "right" : "top",
-                        rects[1]
-                );
-                StdOut.println();
-                rects[0].draw();
-                rects[1].draw();
+                // node.rect.draw();
 
                 RectHV nodeRect1 = node.lb != null ? node.lb.rect : null;
                 RectHV nodeRect2 = node.rt != null ? node.rt.rect : null;
@@ -154,6 +144,8 @@ public class KdTree {
                         nodeRect2 == null ? null : nodeRect2
                 );
                 StdOut.println();
+                if (nodeRect1 != null) nodeRect1.draw();
+                if (nodeRect2 != null) nodeRect2.draw();
             }
 
             level++;
@@ -181,14 +173,6 @@ public class KdTree {
     // unit testing of the methods (optional)
     public static void main(String[] args) {
         // insert
-        KdTree kdTree = new KdTree();
-        kdTree.insert(new Point2D(0.5, 0.5));
-        kdTree.insert(new Point2D(0.75, 0.5));
-        kdTree.insert(new Point2D(0.75, 0.75));
-        kdTree.insert(new Point2D(0.625, 0.75));
-        kdTree.insert(new Point2D(0.625, 0.625));
-        RectHV rect = kdTree.get(kdTree.root, new Point2D(0.5, 0.5), horizontal).rect;
-        assert rect.xmin() == 0 && rect.xmax() == 1 && rect.ymin() == 0 && rect.ymax() == 1;
 
         // contains
         testContains(
@@ -219,6 +203,24 @@ public class KdTree {
                         new Point2D(0.1, 0.1),
                         new Point2D(1.1, 1.1),
                         new Point2D(-0.1, -0.1),
+                        }
+        );
+
+        // rect
+        testRect(
+                new Point2D[] {
+                        /* A */ new Point2D(0.5, 0.5),
+                        /* B */ new Point2D(0.75, 0.5),
+                        /* C */ new Point2D(0.75, 0.75),
+                        /* D */ new Point2D(0.625, 0.75),
+                        /* E */ new Point2D(0.625, 0.625),
+                        },
+                new RectHV[] {
+                        /* A */ new RectHV(0, 0, 1, 1),
+                        /* B */ new RectHV(0.5, 0, 1, 1),
+                        /* C */ new RectHV(0.5, 0.5, 1, 1),
+                        /* D */ new RectHV(0.5, 0.5, 0.75, 1),
+                        /* E */ new RectHV(0.5, 0.5, 0.75, 0.75),
                         }
         );
 
@@ -286,6 +288,23 @@ public class KdTree {
                 new Point2D(0.3125, 0.1875),
                 0
         );
+    }
+
+    private static void testRect(Point2D[] points, RectHV[] rects) {
+        KdTree kdTree = new KdTree();
+
+        for (Point2D p : points)
+            kdTree.insert(p);
+
+        for (int i = 0; i < points.length; i++) {
+            RectHV rect = kdTree.get(kdTree.root, points[i], vertical).rect;
+
+            if (!rect.equals(rects[i])) {
+                StdOut.printf("Rect %s are not for Point %s", rect, rects[i], points[i]);
+                StdOut.println();
+                assert false;
+            }
+        }
     }
 
     private static void testContains(Point2D[] insert, Point2D[] notContains) {
