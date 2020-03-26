@@ -132,20 +132,21 @@ public class KdTree {
 
                 StdDraw.setPenColor(rectColor);
                 StdDraw.setPenRadius();
-                // node.rect.draw();
-
-                RectHV nodeRect1 = node.lb != null ? node.lb.rect : null;
-                RectHV nodeRect2 = node.rt != null ? node.rt.rect : null;
-                StdOut.printf(
-                        "Node Rect %s %s Node Rect %s %s",
-                        line == vertical ? "left" : "bottom",
-                        nodeRect1 == null ? null : nodeRect1,
-                        line == vertical ? "right" : "top",
-                        nodeRect2 == null ? null : nodeRect2
-                );
-                StdOut.println();
-                if (nodeRect1 != null) nodeRect1.draw();
-                if (nodeRect2 != null) nodeRect2.draw();
+                RectHV[] rectHVs = split(node.rect, node.p, line);
+                if (line == vertical)
+                    StdDraw.line(
+                            rectHVs[0].xmax(), // left bottomm right
+                            rectHVs[0].ymin(), // left bottomm right
+                            rectHVs[1].xmin(), // right top left
+                            rectHVs[1].ymax()  // right top left
+                    );
+                if (line == horizontal)
+                    StdDraw.line(
+                            rectHVs[0].xmin(), // bottom top left
+                            rectHVs[0].ymax(), // bottom top left
+                            rectHVs[1].xmax(), // top bottom right
+                            rectHVs[1].ymin()  // top bottom right
+                    );
             }
 
             level++;
