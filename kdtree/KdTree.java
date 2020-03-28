@@ -199,6 +199,8 @@ public class KdTree {
 
         if (rectDistance > distance) return p;
 
+        p = x.p.distanceSquaredTo(q) < distance ? x.p : p;
+
         if (x.lb != null && x.rt != null) {
             p = nearest(x.lb.rect.contains(q) ? x.lb : x.rt, q, p);
             p = nearest(!x.lb.rect.contains(q) ? x.lb : x.rt, q, p);
@@ -208,7 +210,7 @@ public class KdTree {
             if (x.rt != null) p = nearest(x.rt, q, p);
         }
 
-        return x.p.distanceSquaredTo(q) < distance ? x.p : p;
+        return p;
     }
 
     // unit testing of the methods (optional)
@@ -356,9 +358,9 @@ public class KdTree {
                         /* D */  new Point2D(0.4, 0.7),
                         /* E */  new Point2D(0.9, 0.6),
                         },
-                new Point2D(0.72, 0.52),
-                new Point2D(0.9, 0.6),
-                0.038800000000000015
+                new Point2D(0.232, 0.133),
+                new Point2D(0.2, 0.3),
+                0.028912999999999994
         );
     }
 
