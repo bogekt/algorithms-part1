@@ -1,7 +1,7 @@
 /* *****************************************************************************
- *  Name:
- *  Date:
- *  Description:
+ *  Name: Eugene Borys
+ *  Date: 28/03/2020
+ *  Description: KdTree-based set of points with lookup of range and nearest
  **************************************************************************** */
 
 import edu.princeton.cs.algs4.Point2D;
@@ -51,6 +51,7 @@ public class KdTree {
 
     // add the point to the set (if it is not already in the set)
     public void insert(Point2D p) {
+        if (p == null) throw new IllegalArgumentException();
         root = put(root, p, vertical, rootRect);
     }
 
@@ -84,6 +85,7 @@ public class KdTree {
 
     // does the set contain point p?
     public boolean contains(Point2D p) {
+        if (p == null) throw new IllegalArgumentException();
         return get(root, p, vertical) != null;
     }
 
@@ -163,12 +165,42 @@ public class KdTree {
 
     // all points that are inside the rectangle (or on the boundary)
     public Iterable<Point2D> range(RectHV rect) {
-        return null;
+        if (rect == null) throw new IllegalArgumentException();
+        if (root == null) return new Queue<Point2D>();
+
+        return range(root, rect, new Queue<Point2D>());
+    }
+
+    private Queue<Point2D> range(Node x, RectHV rect, Queue<Point2D> inside) {
+        if (!rect.intersects(x.rect))
+            return inside;
+
+        if (x.lb != null && rect.intersects(x.lb.rect)) inside = range(x.lb, rect, inside);
+        if (x.rt != null && rect.intersects(x.rt.rect)) inside = range(x.rt, rect, inside);
+        if (rect.contains(x.p)) inside.enqueue(x.p);
+
+        return inside;
     }
 
     // a nearest neighbor in the set to point p; null if the set is empty
     public Point2D nearest(Point2D p) {
-        return null;
+        if (p == null) throw new IllegalArgumentException();
+        if (root == null) return null;
+        if (contains(p)) return p;
+
+        return nearest(root, p, root.p);
+    }
+
+    private Point2D nearest(Node x, Point2D q, Point2D p) {
+        double distance = p.distanceSquaredTo(q);
+        double newDistance = x.p.distanceSquaredTo(q);
+        double min = Math.min(distance, newDistance);
+
+        if (newDistance < distance) p = x.p;
+        if (x.lb != null && x.lb.rect.distanceSquaredTo(q) < min) p = nearest(x.lb, q, p);
+        if (x.rt != null && x.rt.rect.distanceSquaredTo(q) < min) p = nearest(x.rt, q, p);
+
+        return p;
     }
 
     // unit testing of the methods (optional)
@@ -240,7 +272,7 @@ public class KdTree {
                         /* J */ new Point2D(0.0, 0.5),
                         },
                 new Point2D(0.5, 0.75),
-                new Point2D(0.5, 0.5),
+                new Point2D(0.25, 0.75),
                 0.0625
         );
 

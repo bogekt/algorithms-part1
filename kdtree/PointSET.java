@@ -1,7 +1,7 @@
 /* *****************************************************************************
- *  Name:
- *  Date:
- *  Description:
+ *  Name: Eugene Borys
+ *  Date: 28/03/2020
+ *  Description: Brute-force set of points with lookup of range and nearest
  **************************************************************************** */
 
 import edu.princeton.cs.algs4.Point2D;
