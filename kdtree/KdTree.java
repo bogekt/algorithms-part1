@@ -52,6 +52,8 @@ public class KdTree {
     // add the point to the set (if it is not already in the set)
     public void insert(Point2D p) {
         if (p == null) throw new IllegalArgumentException();
+        if (contains(p)) return;
+
         root = put(root, p, vertical, rootRect);
     }
 
@@ -193,19 +195,42 @@ public class KdTree {
 
     private Point2D nearest(Node x, Point2D q, Point2D p) {
         double distance = p.distanceSquaredTo(q);
-        double newDistance = x.p.distanceSquaredTo(q);
-        double min = Math.min(distance, newDistance);
+        double rectDistance = x.rect.distanceSquaredTo(q);
 
-        if (newDistance < distance) p = x.p;
-        if (x.lb != null && x.lb.rect.distanceSquaredTo(q) < min) p = nearest(x.lb, q, p);
-        if (x.rt != null && x.rt.rect.distanceSquaredTo(q) < min) p = nearest(x.rt, q, p);
+        if (rectDistance > distance) return p;
 
-        return p;
+        if (x.lb != null && x.rt != null) {
+            p = nearest(x.lb.rect.contains(q) ? x.lb : x.rt, q, p);
+            p = nearest(!x.lb.rect.contains(q) ? x.lb : x.rt, q, p);
+        }
+        else {
+            if (x.lb != null) p = nearest(x.lb, q, p);
+            if (x.rt != null) p = nearest(x.rt, q, p);
+        }
+
+        return x.p.distanceSquaredTo(q) < distance ? x.p : p;
     }
 
     // unit testing of the methods (optional)
     public static void main(String[] args) {
-        // insert
+        // size
+        KdTree kdTree = new KdTree();
+        int i = 0;
+        for (Point2D p :
+                new Point2D[] {
+                        /* A */  new Point2D(1.0, 0.9375),
+                        /* B */  new Point2D(0.1875, 0.1875),
+                        /* C */  new Point2D(0.6875, 0.6875),
+                        /* D */  new Point2D(0.0625, 0.0625),
+                        /* E */  new Point2D(0.0625, 0.9375),
+                        }) {
+            kdTree.insert(p);
+            assert kdTree.size() == ++i;
+        }
+        // not insert same
+        kdTree.insert(new Point2D(0.0625, 0.0625));
+        kdTree.insert(new Point2D(0.1875, 0.0));
+        assert kdTree.size() == 6;
 
         // contains
         testContains(
@@ -321,6 +346,20 @@ public class KdTree {
                 new Point2D(0.3125, 0.1875),
                 0
         );
+
+        // nearest
+        testNearest(
+                new Point2D[] {
+                        /* A */  new Point2D(0.7, 0.2),
+                        /* B */  new Point2D(0.5, 0.4),
+                        /* C */  new Point2D(0.2, 0.3),
+                        /* D */  new Point2D(0.4, 0.7),
+                        /* E */  new Point2D(0.9, 0.6),
+                        },
+                new Point2D(0.72, 0.52),
+                new Point2D(0.9, 0.6),
+                0.038800000000000015
+        );
     }
 
     private static void testRect(Point2D[] points, RectHV[] rects) {
@@ -345,7 +384,6 @@ public class KdTree {
 
         for (Point2D p : insert)
             kdTree.insert(p);
-        assert kdTree.size() == insert.length;
 
         Point2D[] contains = insert.clone();
         StdRandom.shuffle(contains);
