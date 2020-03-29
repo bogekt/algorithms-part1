@@ -7,6 +7,7 @@
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.RectHV;
+import edu.princeton.cs.algs4.RedBlackBST;
 import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.StdRandom;
@@ -22,6 +23,7 @@ public class KdTree {
 
     private int size;
     private Node root;
+    private RedBlackBST<Point2D, RectHV[]> splitRects = null;
 
     private static class Node {
         private Point2D p;      // the point
@@ -39,6 +41,7 @@ public class KdTree {
     public KdTree() {
         root = null;
         size = 0;
+        splitRects = new RedBlackBST<Point2D, RectHV[]>();
     }
 
     // is the set empty?
@@ -74,17 +77,24 @@ public class KdTree {
     }
 
     private RectHV[] split(RectHV rect, Point2D p, int line) {
+        if (splitRects.get(p) != null) return splitRects.get(p);
+
+        RectHV[] rects = null;
+
         if (line == vertical)
-            return new RectHV[] {
+            rects = new RectHV[] {
                     new RectHV(rect.xmin(), rect.ymin(), p.x(), rect.ymax()), // left
                     new RectHV(p.x(), rect.ymin(), rect.xmax(), rect.ymax()), // right
             };
         if (line == horizontal)
-            return new RectHV[] {
+            rects = new RectHV[] {
                     new RectHV(rect.xmin(), rect.ymin(), rect.xmax(), p.y()), // bottom
                     new RectHV(rect.xmin(), p.y(), rect.xmax(), rect.ymax()), // top
             };
-        throw new IllegalArgumentException();
+
+        splitRects.put(p, rects);
+
+        return rects;
     }
 
     // does the set contain point p?
@@ -197,20 +207,19 @@ public class KdTree {
 
     private Point2D nearest(Node x, Point2D q, Point2D p) {
         if (DEBUG) StdOut.println(pointNames.get(x.p) + " " + x.p);
-        if (x.rect.distanceSquaredTo(q) > p.distanceSquaredTo(q)) return p;
+        if (!validRect(x.rect, q, p)) return p;
+
         p = x.p.distanceSquaredTo(q) < p.distanceSquaredTo(q) ? x.p : p;
 
         if (x.lb != null && x.rt != null) {
             Node[] nodes = firstSecond(x, q);
             p = nearest(nodes[0], q, p);
-            if (nodes[1].rect.distanceSquaredTo(q) > p.distanceSquaredTo(q)) return p;
+            if (!validRect(nodes[1].rect, q, p)) return p;
             p = nearest(nodes[1], q, p);
         }
         else {
-            if (x.lb != null && x.lb.rect.distanceSquaredTo(q) < p.distanceSquaredTo(q))
-                p = nearest(x.lb, q, p);
-            if (x.rt != null && x.rt.rect.distanceSquaredTo(q) < p.distanceSquaredTo(q))
-                p = nearest(x.rt, q, p);
+            if (x.lb != null && validRect(x.lb.rect, q, p)) p = nearest(x.lb, q, p);
+            if (x.rt != null && validRect(x.rt.rect, q, p)) p = nearest(x.rt, q, p);
         }
 
         return p;
@@ -223,6 +232,10 @@ public class KdTree {
         return lbFirst
                ? new Node[] { x.lb, x.rt }
                : new Node[] { x.rt, x.lb };
+    }
+
+    private boolean validRect(RectHV rect, Point2D q, Point2D p) {
+        return rect.distanceSquaredTo(q) < p.distanceSquaredTo(q);
     }
 
     // unit testing of the methods (optional)
