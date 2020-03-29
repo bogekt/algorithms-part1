@@ -189,6 +189,8 @@ public class KdTree {
         if (!rect.intersects(x.rect))
             return inside;
 
+        // todo from FAQ:
+        // Range search. Instead of checking whether the query rectangle intersects the rectangle corresponding to a node, it suffices to check only whether the query rectangle intersects the splitting line segment: if it does, then recursively search both subtrees; otherwise, recursively search the one subtree where points intersecting the query rectangle could be.
         if (x.lb != null && rect.intersects(x.lb.rect)) inside = range(x.lb, rect, inside);
         if (x.rt != null && rect.intersects(x.rt.rect)) inside = range(x.rt, rect, inside);
         if (rect.contains(x.p)) inside.enqueue(x.p);
@@ -209,6 +211,7 @@ public class KdTree {
         if (DEBUG) StdOut.println(pointNames.get(x.p) + " " + x.p);
         if (!validRect(x.rect, q, p)) return p;
 
+        // todo double call of p.distanceSquaredTo(q) (first in validRect)
         p = x.p.distanceSquaredTo(q) < p.distanceSquaredTo(q) ? x.p : p;
 
         if (x.lb != null && x.rt != null) {
