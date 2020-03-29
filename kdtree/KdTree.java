@@ -14,6 +14,8 @@ import edu.princeton.cs.algs4.StdRandom;
 import java.awt.Color;
 
 public class KdTree {
+    private static boolean DEBUG = false;
+    private static RedBlackBST<Point2D, String> pointNames = null;
     private static final int vertical = 1;
     private static final int horizontal = -1;
     private static final RectHV rootRect = new RectHV(0, 0, 1, 1);
@@ -194,27 +196,38 @@ public class KdTree {
     }
 
     private Point2D nearest(Node x, Point2D q, Point2D p) {
-        double distance = p.distanceSquaredTo(q);
-        double rectDistance = x.rect.distanceSquaredTo(q);
-
-        if (rectDistance > distance) return p;
-
-        p = x.p.distanceSquaredTo(q) < distance ? x.p : p;
+        if (DEBUG) StdOut.println(pointNames.get(x.p) + " " + x.p);
+        if (x.rect.distanceSquaredTo(q) > p.distanceSquaredTo(q)) return p;
+        p = x.p.distanceSquaredTo(q) < p.distanceSquaredTo(q) ? x.p : p;
 
         if (x.lb != null && x.rt != null) {
-            p = nearest(x.lb.rect.contains(q) ? x.lb : x.rt, q, p);
-            p = nearest(!x.lb.rect.contains(q) ? x.lb : x.rt, q, p);
+            Node[] nodes = firstSecond(x, q);
+            p = nearest(nodes[0], q, p);
+            if (nodes[1].rect.distanceSquaredTo(q) > p.distanceSquaredTo(q)) return p;
+            p = nearest(nodes[1], q, p);
         }
         else {
-            if (x.lb != null) p = nearest(x.lb, q, p);
-            if (x.rt != null) p = nearest(x.rt, q, p);
+            if (x.lb != null && x.lb.rect.distanceSquaredTo(q) < p.distanceSquaredTo(q))
+                p = nearest(x.lb, q, p);
+            if (x.rt != null && x.rt.rect.distanceSquaredTo(q) < p.distanceSquaredTo(q))
+                p = nearest(x.rt, q, p);
         }
 
         return p;
     }
 
+    private Node[] firstSecond(Node x, Point2D q) {
+        boolean lbFirst = x.lb.rect.contains(q) || x.rt.rect.contains(q)
+                          ? x.lb.rect.contains(q)
+                          : x.lb.rect.distanceSquaredTo(q) < x.rt.rect.distanceSquaredTo(q);
+        return lbFirst
+               ? new Node[] { x.lb, x.rt }
+               : new Node[] { x.rt, x.lb };
+    }
+
     // unit testing of the methods (optional)
     public static void main(String[] args) {
+        DEBUG = true;
         // size
         KdTree kdTree = new KdTree();
         int i = 0;
@@ -349,7 +362,6 @@ public class KdTree {
                 0
         );
 
-        // nearest
         testNearest(
                 new Point2D[] {
                         /* A */  new Point2D(0.7, 0.2),
@@ -362,9 +374,74 @@ public class KdTree {
                 new Point2D(0.2, 0.3),
                 0.028912999999999994
         );
+
+        testNearest(
+                new Point2D[] {
+                        /* A */  new Point2D(0.7, 0.2),
+                        /* B */  new Point2D(0.5, 0.4),
+                        /* C */  new Point2D(0.2, 0.3),
+                        /* D */  new Point2D(0.4, 0.7),
+                        /* E */  new Point2D(0.9, 0.6),
+                        },
+                new Point2D(0.78, 0.32),
+                new Point2D(0.7, 0.2),
+                0.020800000000000013
+        );
+
+        testNearest(
+                new Point2D[] {
+                        /* A */  new Point2D(0.7, 0.2),
+                        /* B */  new Point2D(0.5, 0.4),
+                        /* C */  new Point2D(0.2, 0.3),
+                        /* D */  new Point2D(0.4, 0.7),
+                        /* E */  new Point2D(0.9, 0.6),
+                        },
+                new Point2D(0.78, 0.32),
+                new Point2D(0.7, 0.2),
+                0.020800000000000013
+        );
+
+        testNearest(
+                new Point2D[] {
+                        /* A */ new Point2D(0.372, 0.497),
+                        /* B */ new Point2D(0.564, 0.413),
+                        /* C */ new Point2D(0.226, 0.577),
+                        /* D */ new Point2D(0.144, 0.179),
+                        /* E */ new Point2D(0.083, 0.51),
+                        /* F */ new Point2D(0.32, 0.708),
+                        /* G */ new Point2D(0.417, 0.362),
+                        /* H */ new Point2D(0.862, 0.825),
+                        /* I */ new Point2D(0.785, 0.725),
+                        /* J */ new Point2D(0.499, 0.208),
+                        },
+                new Point2D(0.43, 0.55),
+                new Point2D(0.372, 0.497),
+                0.006173000000000005
+        );
+
+        testNearest(
+                new Point2D[] {
+                        /* A */ new Point2D(0.9375, 0.8125),
+                        /* B */ new Point2D(0.25, 0.5625),
+                        /* C */ new Point2D(0.8125, 0.0),
+                        /* D */ new Point2D(0.625, 0.9375),
+                        /* E */ new Point2D(0.0625, 0.1875),
+                        /* F */ new Point2D(0.3125, 0.4375),
+                        /* G */ new Point2D(0.0, 0.625),
+                        /* H */ new Point2D(0.375, 0.25),
+                        /* I */ new Point2D(0.5625, 0.875),
+                        /* J */ new Point2D(0.875, 0.0625),
+                        },
+                new Point2D(0.125, 0.75),
+                new Point2D(0.0, 0.625),
+                0.03125
+        );
+
+        DEBUG = false;
     }
 
     private static void testRect(Point2D[] points, RectHV[] rects) {
+        StdOut.println("testRect");
         KdTree kdTree = new KdTree();
 
         for (Point2D p : points)
@@ -382,6 +459,7 @@ public class KdTree {
     }
 
     private static void testContains(Point2D[] insert, Point2D[] notContains) {
+        StdOut.println("testContains");
         KdTree kdTree = new KdTree();
 
         for (Point2D p : insert)
@@ -409,14 +487,20 @@ public class KdTree {
             Point2D expected,
             double expectedDistance
     ) {
+        if (DEBUG) pointNames = new RedBlackBST<>();
+        StdOut.println("testNearest");
         KdTree kdTree = new KdTree();
 
-        for (Point2D p : insert)
+        byte i = 0;
+        for (Point2D p : insert) {
             kdTree.insert(p);
+            if (DEBUG) pointNames.put(p, Character.toString(i++ + 65));
+        }
 
         Point2D nearest = kdTree.nearest(query);
 
         assert nearest.equals(expected);
         assert nearest.distanceSquaredTo(query) == expectedDistance;
+        if (DEBUG) pointNames = null;
     }
 }
